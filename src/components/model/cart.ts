@@ -1,5 +1,4 @@
-import { IProduct } from "../../types";
-import { IEvents } from "../base/events";
+import { Model } from "../base/model";
 
 interface ICartModel {
     items: Map<string, number>;
@@ -7,17 +6,15 @@ interface ICartModel {
     remove(id: string): void;
 }
 
-export class CartModel implements ICartModel {
+export class CartModel extends Model<ICartModel> {
     items: Map<string, number> = new Map();
-
-    constructor(protected events: IEvents) { }
 
     add(id: string) {
         if (!this.items.has(id)) this.items.set(id, 0);
 
         this.items.set(id, this.items.get(id)! + 1);
 
-        this._changed();
+        super.emitChanges("model:cart-change", { items: Array.from(this.items.keys()) });
     }
 
     remove(id: string) {
@@ -29,34 +26,6 @@ export class CartModel implements ICartModel {
             if (this.items.get(id)! === 0) this.items.delete(id);
         };
 
-        this._changed();
-    }
-
-    protected _changed() {
-        this.events.emit("cart:change", { items: Array.from(this.items.keys()) });
-    }
-}
-
-
-interface ICatalogModel {
-    items: IProduct[];
-    setItems(items: IProduct[]): void;
-    getProduct(id: string): IProduct;
-}
-
-
-export class CatalogModel implements ICatalogModel {
-    items: IProduct[] = [];
-
-    setItems(items: IProduct[]) {
-        this.items = items;
-    }
-
-    getProduct(id: string): IProduct {
-        const product = this.items.find(item => item.id === id);
-        if (!product) {
-            throw new Error(`Продукт с id ${id} не найден`);
-        }
-        return product;
+        super.emitChanges("model:cart-change", { items: Array.from(this.items.keys()) });
     }
 }

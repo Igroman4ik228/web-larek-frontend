@@ -1,44 +1,50 @@
+import { Component } from "../base/component";
 import { IEvents } from "../base/events";
-import { IView } from "../base/view";
 
+interface ICartItem {
+    id: string;
+    title: string;
+    price: number;
+}
 
-export class CartItemView implements IView {
-    // Элементы внутри контейнера
-    protected title: HTMLSpanElement;
-    protected price: HTMLSpanElement;
-    protected removeButton: HTMLButtonElement;
+export class CartItemView extends Component<ICartItem> {
+    protected _title: HTMLSpanElement;
+    protected _price: HTMLSpanElement;
+    protected _removeButton: HTMLButtonElement;
 
-    // Данные на будущее
     protected id: string;
 
     constructor(protected container: HTMLElement, protected events: IEvents) {
-        // Получаем элементы внутри контейнера
-        this.title = container.querySelector(".card__title");
-        this.price = container.querySelector(".card__price");
-        this.removeButton = container.querySelector(".basket__item-delete");
+        super(container);
 
-        this.removeButton.addEventListener("click", () =>
+        // Получаем элементы внутри контейнера
+        this._title = container.querySelector(".card__title");
+        this._price = container.querySelector(".card__price");
+        this._removeButton = container.querySelector(".basket__item-delete");
+
+        this._removeButton.addEventListener("click", () =>
             this.events.emit("view:cart-remove", { id: this.id })
         );
     }
 
-    render(data: { id: string, title: string, price: number }): HTMLElement {
-        if (data) {
-            this.id = data.id;
-            this.title.textContent = data.title;
-            this.price.textContent = data.price.toString();
-        }
-        return this.container;
+    set title(value: string) {
+        this.setText(this._title, value);
+    }
+
+    set price(value: number) {
+        this.setText(this._price, String(value));
     }
 }
 
+interface ICart {
+    items: HTMLElement[];
+    totalPrice: number;
+}
 
-export class CartView implements IView {
-    constructor(protected container: HTMLElement) { }
-    render(data: { items: HTMLElement[] }): HTMLElement {
-        if (data) {
-            this.container.replaceChildren(...data.items);
-        }
-        return this.container;
+export class CartView extends Component<ICart> {
+    constructor(protected container: HTMLElement) { super(container); }
+
+    set items(items: HTMLElement[]) {
+        this.container.replaceChildren(...items);
     }
 }

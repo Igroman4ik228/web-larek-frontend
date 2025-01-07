@@ -1,14 +1,16 @@
-import { Api, ApiListResponse } from './components/base/api';
 import { EventEmitter } from './components/base/events';
-import { CartModel, CatalogModel } from './components/model/cart';
+import { CartModel } from './components/model/cart';
+import { CatalogModel } from './components/model/catalog';
+import { LarekApi } from './components/model/larekApi';
 import { CartItemView, CartView } from './components/view/cart';
+import { PageView } from './components/view/page';
 import './scss/styles.scss';
-import { IProduct } from './types';
+import { IProduct } from './types/model/larekApi';
 import { API_URL } from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
 
 
-const api = new Api(API_URL);
+const larekApi = new LarekApi(API_URL);
 const events = new EventEmitter();
 
 // Чтобы мониторить все события, для отладки
@@ -17,18 +19,22 @@ events.onAll(({ eventName, data }) => {
 })
 
 // Все шаблоны
-const cardTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
+const catalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
+const cartTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
 
+
+// Глобальные контейнеры
+const page = new PageView(document.body, events);
+// const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 
 const cartView = new CartView(ensureElement<HTMLElement>(".basket"));
-const cartModel = new CartModel(events);
+const cartModel = new CartModel({}, events);
 const catalogModel = new CatalogModel();
-
 
 function renderCart(items: string[]) {
     cartView.render({
         items: items.map(id => {
-            const itemView = new CartItemView(cloneTemplate(cardTemplate), events);
+            const itemView = new CartItemView(cloneTemplate(cartTemplate), events);
             const product = catalogModel.getProduct(id);
             return itemView.render({
                 id: product.id,
@@ -39,7 +45,19 @@ function renderCart(items: string[]) {
     });
 }
 
-events.on("cart:change", (event: { items: string[] }) => {
+function renderPageProducts(items: IProduct[]) {
+    page.render({
+        catalog: items.map(item => {
+            // const cotalogItem = new CatalogItem(cloneTemplate(catalogTemplate), events);
+            return cloneTemplate(catalogTemplate);
+        }),
+        counter: 0,
+        locked: false
+    })
+}
+
+
+events.on("model:cart-change", (event: { items: string[] }) => {
     renderCart(event.items);
 });
 
@@ -47,13 +65,12 @@ events.on("view:cart-remove", (event: { id: string }) => {
     cartModel.remove(event.id)
 });
 
-api.get<ApiListResponse<IProduct>>("/product")
-    .then(res => {
-        catalogModel.setItems(res.items);
-        cartModel.add("90973ae5-285c-4b6f-a6d0-65d1d760b102");
+
+larekApi.getProducts()
+    .then(items => {
+        catalogModel.setItems(items);
+        console.log(items);
+        cartModel.add("48e86fc0-ca99-4e13-b164-b98d65928b53")
+        // renderPageProducts(catalogModel.items);
     })
     .catch(err => console.error(err));
-
-
-
-

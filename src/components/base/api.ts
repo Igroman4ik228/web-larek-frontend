@@ -1,17 +1,15 @@
-export type ApiListResponse<Type> = {
-    total: number,
-    items: Type[]
-};
+import { ApiPostMethods, ErrorState } from "../../types/base/api";
 
-export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
-
+/**
+ * Базовый класс для работы с API
+ */
 export class Api {
     readonly baseUrl: string;
-    protected options: RequestInit;
+    protected _options: RequestInit;
 
     constructor(baseUrl: string, options: RequestInit = {}) {
         this.baseUrl = baseUrl;
-        this.options = {
+        this._options = {
             headers: {
                 'Content-Type': 'application/json',
                 ...(options.headers as object ?? {})
@@ -19,24 +17,33 @@ export class Api {
         };
     }
 
-    protected async handleResponse<T>(response: Response): Promise<T> {
-        if (response.ok) return response.json();
-        else return response.json()
-            .then(data => Promise.reject(data.error ?? response.statusText));
+    protected async _handleResponse<T>(response: Response): Promise<T> {
+        if (response.ok)
+            return response.json();
+
+        const data = (await response.json()) as ErrorState;
+        return Promise.reject(data.error ?? response.statusText);
     }
 
-    get<T>(uri: string) {
-        return fetch(this.baseUrl + uri, {
-            ...this.options,
-            method: 'GET'
-        }).then(this.handleResponse<T>);
-    }
-
-    post<T>(uri: string, data: object, method: ApiPostMethods = 'POST') {
-        return fetch(this.baseUrl + uri, {
-            ...this.options,
+    protected async _get<T>(uri: string) {
+        const method = 'GET';
+        const response = await fetch(this.baseUrl + uri, {
+            ...this._options,
             method,
-            body: JSON.stringify(data)
-        }).then(this.handleResponse<T>);
+        });
+        return this._handleResponse<T>(response);
+    }
+
+    protected async _post<T>(
+        uri: string,
+        data: object,
+        method: ApiPostMethods = 'POST'
+    ) {
+        const response = await fetch(this.baseUrl + uri, {
+            ...this._options,
+            method,
+            body: JSON.stringify(data),
+        });
+        return this._handleResponse<T>(response);
     }
 }
