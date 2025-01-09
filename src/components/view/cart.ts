@@ -1,5 +1,6 @@
+import { IEvents } from "../../types/base/events";
+import { formatCurrency } from "../../utils";
 import { Component } from "../base/component";
-import { IEvents } from "../base/events";
 
 interface ICartItem {
     id: string;
@@ -17,7 +18,6 @@ export class CartItemView extends Component<ICartItem> {
     constructor(protected container: HTMLElement, protected events: IEvents) {
         super(container);
 
-        // Получаем элементы внутри контейнера
         this._title = container.querySelector(".card__title");
         this._price = container.querySelector(".card__price");
         this._removeButton = container.querySelector(".basket__item-delete");
@@ -31,8 +31,12 @@ export class CartItemView extends Component<ICartItem> {
         this.setText(this._title, value);
     }
 
-    set price(value: number) {
-        this.setText(this._price, String(value));
+    set price(value: number | null) {
+        if (!value) {
+            this.setText(this._price, "Бесценно");
+            return;
+        };
+        this.setText(this._price, formatCurrency(value));
     }
 }
 
@@ -42,9 +46,21 @@ interface ICart {
 }
 
 export class CartView extends Component<ICart> {
-    constructor(protected container: HTMLElement) { super(container); }
+    protected _container: HTMLElement;
+    protected _totalPrice: HTMLElement;
+
+    constructor(protected container: HTMLElement) {
+        super(container);
+
+        this._container = container.querySelector(".basket__list");
+        this._totalPrice = container.querySelector(".basket__price");
+    }
 
     set items(items: HTMLElement[]) {
-        this.container.replaceChildren(...items);
+        this._container.replaceChildren(...items);
+    }
+
+    set totalPrice(value: number) {
+        this.setText(this._totalPrice, formatCurrency(value));
     }
 }

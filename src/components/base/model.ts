@@ -1,12 +1,7 @@
-import { IEvents } from "./events";
-
-// Гарда для проверки на модель
-export const isModel = (obj: unknown): obj is Model<any> => {
-    return obj instanceof Model;
-}
+import { IEvents } from "../../types/base/events";
 
 /**
- * Базовая модель, чтобы можно было отличить ее от простых объектов с данными
+ * Базовая модель
  */
 export abstract class Model<T> {
     constructor(data: Partial<T>, protected events: IEvents) {
@@ -18,6 +13,4 @@ export abstract class Model<T> {
         // Состав данных можно модифицировать
         this.events.emit(event, payload ?? {});
     }
-
-    // далее можно добавить общие методы для моделей
 }

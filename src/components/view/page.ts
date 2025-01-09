@@ -1,6 +1,8 @@
-import { ensureElement } from "../../utils/utils";
+
+import { IEvents } from "../../types/base/events";
+import { ensureElement } from "../../utils/html";
 import { Component } from "../base/component";
-import { IEvents } from "../base/events";
+
 
 interface IPage {
     counter: number;
@@ -22,9 +24,8 @@ export class PageView extends Component<IPage> {
         this._counter = ensureElement<HTMLElement>('.header__basket-counter');
         this._cart = ensureElement<HTMLElement>('.header__basket');
 
-
         this._cart.addEventListener('click', () => {
-            this.events.emit('view:cart-open');
+            this.events.emit("view:cart-open");
         });
     }
 

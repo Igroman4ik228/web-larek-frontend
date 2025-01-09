@@ -1,17 +1,27 @@
-import { ApiListResponse, ILarekApi, IOrder, IOrderResult, IProduct } from "../../types/model/larekApi";
-import { Api } from "../base/api";
+import { ApiListResponse, ILarekApi, IOrder, IOrderResult, IProduct } from "../types/model/larekApi";
+import { Api } from "./base/api";
 
 /**
  * Класс для работы с API Веб Ларька
  */
 export class LarekApi extends Api implements ILarekApi {
+    readonly cdn: string;
 
+    constructor(cdn: string, baseUrl: string, options?: RequestInit) {
+        super(baseUrl, options);
+        this.cdn = cdn;
+    }
     /**
      * Получить список товаров
      */
     async getProducts(): Promise<IProduct[]> {
-        const res = await this._get<ApiListResponse<IProduct>>("/product");
-        return res.items;
+        return this._get<ApiListResponse<IProduct>>("/product")
+            .then(data =>
+                data.items.map((item) => ({
+                    ...item,
+                    image: this.cdn + item.image
+                }))
+            );
     }
 
     /**
@@ -20,7 +30,11 @@ export class LarekApi extends Api implements ILarekApi {
      * @throws {Error} - если товар с данным ID не найден
      */
     async getProduct(id: string): Promise<IProduct> {
-        return this._get<IProduct>(`/product/${id}`);
+        return this._get<IProduct>(`/product/${id}`)
+            .then(item => ({
+                ...item,
+                image: this.cdn + item.image,
+            }));
     }
 
     /**

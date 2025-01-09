@@ -1,20 +1,30 @@
+import { IEvents } from "../../types/base/events";
+import { ICartModel } from "../../types/model/cart";
+import { ICatalogModel } from "../../types/model/catalog";
 import { Model } from "../base/model";
-
-interface ICartModel {
-    items: Map<string, number>;
-    add(id: string): void;
-    remove(id: string): void;
-}
 
 export class CartModel extends Model<ICartModel> {
     items: Map<string, number> = new Map();
+    totalPrice: number;
+
+    constructor(data: Partial<ICartModel>, events: IEvents, protected catalogModel: ICatalogModel) {
+        super(data, events);
+        this.totalPrice = 0;
+    }
 
     add(id: string) {
         if (!this.items.has(id)) this.items.set(id, 0);
 
         this.items.set(id, this.items.get(id)! + 1);
 
-        super.emitChanges("model:cart-change", { items: Array.from(this.items.keys()) });
+
+        const product = this.catalogModel.getProduct(id);
+        console.log(product);
+        this.totalPrice += product.price;
+        console.log(this.totalPrice);
+
+
+        this.emitChanges("model:cart-change", { items: Array.from(this.items.keys()) });
     }
 
     remove(id: string) {
@@ -26,6 +36,9 @@ export class CartModel extends Model<ICartModel> {
             if (this.items.get(id)! === 0) this.items.delete(id);
         };
 
-        super.emitChanges("model:cart-change", { items: Array.from(this.items.keys()) });
+        const product = this.catalogModel.getProduct(id);
+        this.totalPrice -= product.price;
+
+        this.emitChanges("model:cart-change", { items: Array.from(this.items.keys()) });
     }
 }

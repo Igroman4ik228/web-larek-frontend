@@ -1,17 +1,4 @@
-// Хорошая практика даже простые типы выносить в алиасы
-// Зато когда захотите поменять это достаточно сделать в одном месте
-type EventName = string | RegExp;
-type Subscriber = Function;
-type EmitterEvent = {
-    eventName: string,
-    data: unknown
-};
-
-export interface IEvents {
-    on<T extends object>(event: EventName, callback: (data: T) => void): void;
-    emit<T extends object>(event: string, data?: T): void;
-    trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void;
-}
+import { EmitterEvent, EventName, IEvents, Subscriber } from "../../types/base/events";
 
 /**
  * Брокер событий, классическая реализация
@@ -28,7 +15,10 @@ export class EventEmitter implements IEvents {
     /**
      * Установить обработчик на событие
      */
-    on<T extends object>(eventName: EventName, callback: (event: T) => void) {
+    on<T extends object>(
+        eventName: EventName,
+        callback: (event: T) => void
+    ) {
         if (!this._events.has(eventName)) {
             this._events.set(eventName, new Set<Subscriber>());
         }
@@ -73,13 +63,16 @@ export class EventEmitter implements IEvents {
      * Сбросить все обработчики
      */
     offAll() {
-        this._events = new Map<string, Set<Subscriber>>();
+        this._events.clear();
     }
 
     /**
      * Сделать коллбек триггер, генерирующий событие при вызове
      */
-    trigger<T extends object>(eventName: string, context?: Partial<T>) {
+    trigger<T extends object>(
+        eventName: string,
+        context?: Partial<T>
+    ) {
         return (event: object = {}) => {
             this.emit(eventName, {
                 ...(event || {}),

@@ -1,18 +1,13 @@
+import { ICatalogModel } from "../../types/model/catalog";
 import { IProduct } from "../../types/model/larekApi";
+import { Model } from "../base/model";
 
-
-interface ICatalogModel {
-    items: IProduct[];
-    setItems(items: IProduct[]): void;
-    getProduct(id: string): IProduct;
-}
-
-
-export class CatalogModel implements ICatalogModel {
+export class CatalogModel extends Model<ICatalogModel> {
     items: IProduct[] = [];
 
     setItems(items: IProduct[]) {
         this.items = items;
+        this.emitChanges("model:catalog-change", { items });
     }
 
     getProduct(id: string): IProduct {
