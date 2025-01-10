@@ -36,7 +36,7 @@ const basketView = new BasketView(
     ensureElement<HTMLElement>(".basket"),
     {
         onClick: () => {
-            if (basketModel.totalPrice !== 0)
+            if (basketModel.validateTotalPrice())
                 events.emit(ViewStates.basketSubmit)
         }
     }

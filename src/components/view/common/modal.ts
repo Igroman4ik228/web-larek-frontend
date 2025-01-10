@@ -1,7 +1,7 @@
 import { ModalStates } from "../../../types";
 import { IEvents } from "../../../types/base/events";
 import { IModalData } from "../../../types/view/common/modal";
-import { ensureElement } from "../../../utils/html";
+import { ensureElement, setElementChildren } from "../../../utils/html";
 import { Component } from "../../base/component";
 
 export class ModalView extends Component<IModalData> {
@@ -21,9 +21,9 @@ export class ModalView extends Component<IModalData> {
 
     set content(value: HTMLElement | null) {
         if (value === null)
-            this._content.replaceChildren();
+            setElementChildren(this._content, []);
         else
-            this._content.replaceChildren(value);
+            setElementChildren(this._content, value);
     }
 
     open() {

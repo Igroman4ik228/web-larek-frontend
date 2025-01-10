@@ -1,7 +1,7 @@
 import { ViewStates } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { IPageData } from "../../types/view/page";
-import { ensureElement } from "../../utils/html";
+import { ensureElement, setElementChildren } from "../../utils/html";
 import { Component } from "../base/component";
 
 export class PageView extends Component<IPageData> {
@@ -29,7 +29,7 @@ export class PageView extends Component<IPageData> {
     }
 
     set catalog(items: HTMLElement[]) {
-        this._catalog.replaceChildren(...items);
+        setElementChildren(this._catalog, items);
     }
 
     set locked(value: boolean) {

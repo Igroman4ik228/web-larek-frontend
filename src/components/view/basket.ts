@@ -2,7 +2,7 @@ import { IOnClickEvent, ViewStates } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { IBasketItemView, IBasketView } from "../../types/view/basket";
 import { formatCurrency } from "../../utils";
-import { ensureElement } from "../../utils/html";
+import { ensureElement, setElementChildren } from "../../utils/html";
 import { Component } from "../base/component";
 
 export class BasketItemView extends Component<IBasketItemView> {
@@ -62,7 +62,7 @@ export class BasketView extends Component<IBasketView> {
     }
 
     set items(value: HTMLElement[]) {
-        this._containerForItems.replaceChildren(...value);
+        setElementChildren(this._containerForItems, value);
     }
 
     set totalPrice(value: number) {

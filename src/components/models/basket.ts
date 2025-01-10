@@ -56,7 +56,15 @@ export class BasketModel implements IBasketModel {
         return this._items.indexOf(id);
     }
 
-    clear(): void {
+    validateTotalPrice() {
+        if (this._totalPrice <= 0) {
+            return false
+        }
+
+        return true
+    }
+
+    clear() {
         this._items = [];
         this._totalPrice = 0;
 
