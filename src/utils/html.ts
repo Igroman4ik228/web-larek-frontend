@@ -23,7 +23,7 @@ export function ensureElement<T extends HTMLElement>(
     if (selectorElement instanceof HTMLElement) {
         return selectorElement as T;
     }
-    throw new Error('Unknown selector element');
+    throw new Error("Unknown selector element");
 }
 
 /**
@@ -81,7 +81,7 @@ export function setElementProps<T extends HTMLElement>(
 ) {
     for (const key in props) {
         const value = props[key];
-        if (isPlainObject(value) && key === 'dataset') {
+        if (isPlainObject(value) && key === "dataset") {
             setElementData(element, value);
         } else {
             // @ts-expect-error fix indexing later
@@ -97,7 +97,7 @@ export function cloneTemplate<T extends HTMLElement>(query: string | HTMLTemplat
     const template = ensureElement(query) as HTMLTemplateElement;
     const first = template.content.firstElementChild
     if (!first) {
-        throw new Error('Template is empty');
+        throw new Error("Template is empty");
     }
 
     return first.cloneNode(true) as T;

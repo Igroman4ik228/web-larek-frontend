@@ -1,13 +1,8 @@
 import { ViewStates } from "../../types";
 import { IEvents } from "../../types/base/events";
+import { IPageData } from "../../types/view/page";
 import { ensureElement } from "../../utils/html";
 import { Component } from "../base/component";
-
-interface IPageData {
-    counter: number;
-    catalog: HTMLElement[];
-    locked: boolean;
-}
 
 export class PageView extends Component<IPageData> {
     protected _counter: HTMLElement;
@@ -16,16 +11,16 @@ export class PageView extends Component<IPageData> {
     protected _basket: HTMLElement;
 
 
-    constructor(container: HTMLElement, protected events: IEvents) {
+    constructor(container: HTMLElement, events: IEvents) {
         super(container);
 
         this._counter = ensureElement<HTMLElement>(".header__basket-counter");
         this._catalog = ensureElement<HTMLElement>(".gallery");
-        this._wrapper = ensureElement<HTMLElement>('.page__wrapper');
-        this._basket = ensureElement<HTMLElement>('.header__basket');
+        this._wrapper = ensureElement<HTMLElement>(".page__wrapper");
+        this._basket = ensureElement<HTMLElement>(".header__basket");
 
-        this._basket.addEventListener('click', () => {
-            this.events.emit(ViewStates.basketOpen);
+        this._basket.addEventListener("click", () => {
+            events.emit(ViewStates.basketOpen);
         });
     }
 
@@ -38,9 +33,6 @@ export class PageView extends Component<IPageData> {
     }
 
     set locked(value: boolean) {
-        if (value)
-            this._wrapper.classList.add("page__wrapper_locked");
-        else
-            this._wrapper.classList.remove("page__wrapper_locked");
+        this.toggleClass(this._wrapper, "page__wrapper_locked", value);
     }
 }

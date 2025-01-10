@@ -1,12 +1,7 @@
 import { ModelStates } from "../../types";
 import { IEvents } from "../../types/base/events";
+import { ICatalogModel } from "../../types/model/catalog";
 import { ILarekApi, IProduct } from "../../types/model/larekApi";
-
-export interface ICatalogModel {
-    products: IProduct[];
-    getProduct(id: string): IProduct;
-    loadProducts(): Promise<void>;
-}
 
 /**
  * Модель для списка товаров

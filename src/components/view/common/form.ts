@@ -1,11 +1,7 @@
 import { IEvents } from "../../../types/base/events";
+import { IFormState } from "../../../types/view/common/form";
 import { ensureElement } from "../../../utils/html";
 import { Component } from "../../base/component";
-
-interface IFormState {
-    valid: boolean;
-    errors: string[];
-}
 
 export class Form<T> extends Component<IFormState> {
     protected _submit: HTMLButtonElement;
@@ -14,17 +10,17 @@ export class Form<T> extends Component<IFormState> {
     constructor(protected container: HTMLFormElement, protected events: IEvents) {
         super(container);
 
-        this._submit = ensureElement<HTMLButtonElement>('button[type=submit]', this.container);
-        this._errors = ensureElement<HTMLElement>('.form__errors', this.container);
+        this._submit = ensureElement<HTMLButtonElement>("button[type=submit]", this.container);
+        this._errors = ensureElement<HTMLElement>(".form__errors", this.container);
 
-        this.container.addEventListener('input', (e: Event) => {
+        this.container.addEventListener("input", (e: Event) => {
             const target = e.target as HTMLInputElement;
             const field = target.name as keyof T;
             const value = target.value;
             this.onInputChange(field, value);
         });
 
-        this.container.addEventListener('submit', (e: Event) => {
+        this.container.addEventListener("submit", (e: Event) => {
             e.preventDefault();
             this.events.emit(`${this.container.name}:submit`);
         });

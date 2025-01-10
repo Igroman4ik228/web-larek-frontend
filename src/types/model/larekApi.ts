@@ -14,11 +14,19 @@ export interface IProduct {
 
 export type PaymentMethod = "online" | "cash";
 
-export interface IOrder {
+export interface IOrderPayment {
     payment: PaymentMethod;
     email: string;
+}
+
+export interface IOrderContact {
     phone: string;
     address: string;
+}
+
+export type IOrderForm = IOrderPayment & IOrderContact;
+
+export interface IOrder extends IOrderForm {
     total: number;
     items: string[];
 }

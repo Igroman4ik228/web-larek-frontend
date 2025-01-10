@@ -4,12 +4,12 @@ export type SelectorCollection<T> = string | NodeListOf<Element> | T[];
 export type ElementChild = HTMLElement | HTMLElement[];
 // следующие типы для универсальной настройки тега
 export type ElementAttrs =
-    | 'textContent'
-    | 'className'
-    | 'href'
-    | 'src'
-    | 'alt'
-    | 'dataset'; // ограничиваем, что можно настроить
+    | "textContent"
+    | "className"
+    | "href"
+    | "src"
+    | "alt"
+    | "dataset"; // ограничиваем, что можно настроить
 export type ElementProps<T extends HTMLElement> = Partial<
     Record<keyof T, string | boolean | object>
 >; // Partial делает все поля не обязательными

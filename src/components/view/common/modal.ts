@@ -1,11 +1,8 @@
 import { ModalStates } from "../../../types";
 import { IEvents } from "../../../types/base/events";
+import { IModalData } from "../../../types/view/common/modal";
 import { ensureElement } from "../../../utils/html";
 import { Component } from "../../base/component";
-
-interface IModalData {
-    content: HTMLElement | null;
-}
 
 export class ModalView extends Component<IModalData> {
     protected _closeButton: HTMLButtonElement;
@@ -14,12 +11,12 @@ export class ModalView extends Component<IModalData> {
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
 
-        this._closeButton = ensureElement<HTMLButtonElement>('.modal__close', container);
-        this._content = ensureElement<HTMLElement>('.modal__content', container);
+        this._closeButton = ensureElement<HTMLButtonElement>(".modal__close", container);
+        this._content = ensureElement<HTMLElement>(".modal__content", container);
 
-        this._closeButton.addEventListener('click', this.close.bind(this));
-        this.container.addEventListener('click', this.close.bind(this));
-        this._content.addEventListener('click', (event) => event.stopPropagation());
+        this._closeButton.addEventListener("click", this.close.bind(this));
+        this.container.addEventListener("click", this.close.bind(this));
+        this._content.addEventListener("click", (event) => event.stopPropagation());
     }
 
     set content(value: HTMLElement | null) {

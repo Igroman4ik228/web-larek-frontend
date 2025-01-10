@@ -1,23 +1,13 @@
 import { ModelStates } from "../../types";
 import { IEvents } from "../../types/base/events";
-import { ICatalogModel } from "./catalog";
-
-export type BasketItem = { id: string, count: number }
-export type BasketItems = Map<BasketItem["id"], BasketItem["count"]>
-
-export interface IBasketModel {
-    readonly items: BasketItems;
-    readonly totalPrice: number;
-    add(id: string): void;
-    remove(id: string): void;
-    clear(): void;
-}
+import { IBasketModel } from "../../types/model/basket";
+import { ICatalogModel } from "../../types/model/catalog";
 
 /**
  * Модель для корзины
  */
 export class BasketModel implements IBasketModel {
-    protected _items: BasketItems = new Map();
+    protected _items: string[] = [];
     protected _totalPrice = 0;
 
     constructor(protected events: IEvents, protected catalogModel: ICatalogModel) { }
@@ -26,8 +16,10 @@ export class BasketModel implements IBasketModel {
     get totalPrice() { return this._totalPrice }
 
     add(id: string) {
-        if (!this._items.has(id)) this._items.set(id, 0);
-        this._items.set(id, this._items.get(id)! + 1);
+        if (this._items.includes(id))
+            return;
+
+        this._items.push(id);
 
         const product = this.catalogModel.getProduct(id);
         if (product.price !== null) {
@@ -35,23 +27,16 @@ export class BasketModel implements IBasketModel {
         };
 
         this.events.emit(
-            ModelStates.basketChange,
-            {
-                items: Array.from(this._items.keys()),
-                totalPrice: this._totalPrice
-            }
+            ModelStates.basketChange, { ids: this._items }
         );
     }
 
     remove(id: string) {
-        if (!this._items.has(id)) return;
+        if (!this.has(id))
+            return;
 
-        if (this._items.get(id)! > 0) {
-            this._items.set(id, this._items.get(id)! - 1)
-
-            if (this._items.get(id)! === 0)
-                this._items.delete(id);
-        };
+        const index = this._items.indexOf(id);
+        this._items.splice(index, 1);
 
         const product = this.catalogModel.getProduct(id);
         if (product.price !== null) {
@@ -59,24 +44,25 @@ export class BasketModel implements IBasketModel {
         };
 
         this.events.emit(
-            ModelStates.basketChange,
-            {
-                items: Array.from(this._items.keys()),
-                totalPrice: this._totalPrice
-            }
+            ModelStates.basketChange, { ids: this._items }
         );
     }
 
+    has(id: string) {
+        return this._items.includes(id);
+    }
+
+    getIndex(id: string) {
+        return this._items.indexOf(id);
+    }
+
     clear(): void {
-        this._items.clear();
+        this._items = [];
         this._totalPrice = 0;
 
         this.events.emit(
             ModelStates.basketChange,
-            {
-                items: Array.from(this._items.keys()),
-                totalPrice: this._totalPrice
-            }
+            { ids: this._items }
         );
     }
 }
