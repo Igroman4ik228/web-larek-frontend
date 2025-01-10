@@ -1,31 +1,31 @@
-
+import { ViewStates } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { ensureElement } from "../../utils/html";
 import { Component } from "../base/component";
 
-
-interface IPage {
+interface IPageData {
     counter: number;
     catalog: HTMLElement[];
     locked: boolean;
 }
 
-export class PageView extends Component<IPage> {
-    protected _wrapper: HTMLElement;
-    protected _catalog: HTMLElement;
+export class PageView extends Component<IPageData> {
     protected _counter: HTMLElement;
-    protected _cart: HTMLElement;
+    protected _catalog: HTMLElement;
+    protected _wrapper: HTMLElement;
+    protected _basket: HTMLElement;
 
-    constructor(protected container: HTMLElement, protected events: IEvents) {
+
+    constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
 
+        this._counter = ensureElement<HTMLElement>(".header__basket-counter");
+        this._catalog = ensureElement<HTMLElement>(".gallery");
         this._wrapper = ensureElement<HTMLElement>('.page__wrapper');
-        this._catalog = ensureElement<HTMLElement>('.gallery');
-        this._counter = ensureElement<HTMLElement>('.header__basket-counter');
-        this._cart = ensureElement<HTMLElement>('.header__basket');
+        this._basket = ensureElement<HTMLElement>('.header__basket');
 
-        this._cart.addEventListener('click', () => {
-            this.events.emit("view:cart-open");
+        this._basket.addEventListener('click', () => {
+            this.events.emit(ViewStates.basketOpen);
         });
     }
 
@@ -38,10 +38,9 @@ export class PageView extends Component<IPage> {
     }
 
     set locked(value: boolean) {
-        if (value) {
-            this._wrapper.classList.add('page__wrapper_locked');
-        } else {
-            this._wrapper.classList.remove('page__wrapper_locked');
-        }
+        if (value)
+            this._wrapper.classList.add("page__wrapper_locked");
+        else
+            this._wrapper.classList.remove("page__wrapper_locked");
     }
 }

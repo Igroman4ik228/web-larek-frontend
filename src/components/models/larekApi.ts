@@ -1,5 +1,5 @@
-import { ApiListResponse, ILarekApi, IOrder, IOrderResult, IProduct } from "../types/model/larekApi";
-import { Api } from "./base/api";
+import { ApiListResponse, ILarekApi, IOrder, IOrderResult, IProduct } from "../../types/model/larekApi";
+import { Api } from "../base/api";
 
 /**
  * Класс для работы с API Веб Ларька
@@ -14,7 +14,7 @@ export class LarekApi extends Api implements ILarekApi {
     /**
      * Получить список товаров
      */
-    async getProducts(): Promise<IProduct[]> {
+    async getProductList(): Promise<IProduct[]> {
         return this._get<ApiListResponse<IProduct>>("/product")
             .then(data =>
                 data.items.map((item) => ({

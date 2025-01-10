@@ -1,17 +1,17 @@
 import { EventEmitter } from './components/base/events';
-import { LarekApi } from './components/larekApi';
-import { CartModel } from './components/model/cart';
-import { CatalogModel } from './components/model/catalog';
-import { CardPreviewView, CardView } from './components/view/card';
-import { CartItemView, CartView } from './components/view/cart';
+import { BasketModel } from './components/models/basket';
+import { CatalogModel } from './components/models/catalog';
+import { LarekApi } from './components/models/larekApi';
+import { OrderModel } from './components/models/order';
 import { ModalView } from './components/view/common/modal';
 import { PageView } from './components/view/page';
 import './scss/styles.scss';
-import { IProduct } from './types/model/larekApi';
-import { CategoryColor } from './types/view/card';
+import { ModalStates, ModelStates, ViewStates } from './types';
+import { IOrderResult, IProduct } from './types/model/larekApi';
 import { API_URL, CDN_URL } from './utils/constants';
-import { cloneTemplate, ensureElement } from './utils/html';
+import { ensureElement } from './utils/html';
 
+// Базовые компоненты
 const larekApi = new LarekApi(CDN_URL, API_URL);
 const events = new EventEmitter();
 
@@ -20,127 +20,69 @@ events.onAll(({ eventName, data }) => {
     console.log(eventName, data);
 })
 
+// Модели
+const catalogModel = new CatalogModel(events, larekApi);
+const basketModel = new BasketModel(events, catalogModel);
+const orderModel = new OrderModel(events, larekApi, basketModel);
+
+
 // Все шаблоны
-const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
-const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
-const cardCartTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
-const modalTemplate = ensureElement<HTMLTemplateElement>('#modal-container')
-
-// Глобальные контейнеры
-const page = new PageView(document.body, events);
-const modal = new ModalView(modalTemplate, events);
-
-const catalogModel = new CatalogModel({}, events);
-const cartModel = new CartModel({}, events, catalogModel);
-
-const cartView = new CartView(ensureElement<HTMLElement>(".basket"));
-
-function renderCart(items: string[]) {
-    return cartView.render({
-        items: items.map(id => {
-            const itemView = new CartItemView(cloneTemplate(cardCartTemplate), events);
-            const product = catalogModel.getProduct(id);
-            return itemView.render({
-                id: product.id,
-                title: product.title,
-                price: product.price
-            });
-        }),
-        totalPrice: cartModel.totalPrice
-    });
-};
-
-function renderPage(items: IProduct[]) {
-    page.catalog = items.map(item => renderCard(item));
-    page.counter = cartModel.items.size;
-};
-
-function renderCard(item: IProduct) {
-    const cardView = new CardView(
-        cloneTemplate(cardCatalogTemplate),
-        { onClick: () => events.emit("view:card-select", { item }) }
-    );
-
-    return cardView.render({
-        title: item.title,
-        image: item.image,
-        category: {
-            name: item.category,
-            color: CategoryColor[item.category as keyof typeof CategoryColor]
-        },
-        price: item.price
-    })
-};
-
-function renderCardPreview(item: IProduct) {
-    const cardPreviewView = new CardPreviewView(
-        cloneTemplate(cardPreviewTemplate),
-        { onClick: () => events.emit("view:card-order", { id: item.id }) }
-    );
-
-    return cardPreviewView.render({
-        title: item.title,
-        image: item.image,
-        category: {
-            name: item.category,
-            color: CategoryColor[item.category as keyof typeof CategoryColor]
-        },
-        price: item.price
-    })
-};
+const modalTemplate = ensureElement<HTMLElement>('#modal-container')
 
 
-events.on("view:card-select", (event: { item: IProduct }) => {
-    modal.render(
-        {
-            content: renderCardPreview(event.item)
-        }
-    );
-});
-
-events.on("model:catalog-change", (event: { items: IProduct[] }) => {
-    renderPage(event.items);
-});
-
-events.on("model:cart-change", (event: { items: string[] }) => {
-    renderCart(event.items);
-    page.counter = cartModel.items.size;
-});
-
-events.on("view:cart-open", () => {
-    modal.render(
-        {
-            content: renderCart([...cartModel.items.keys()])
-        }
-    )
-});
-
-events.on("view:cart-remove", (event: { id: string }) => {
-    cartModel.remove(event.id)
-});
-
-events.on("view:card-order", (event: { id: string }) => {
-    cartModel.add(event.id);
-});
+// Отображения
+const modalView = new ModalView(modalTemplate, events)
+const page = new PageView(document.body, events)
 
 
-// Блокируем прокрутку страницы если открыта модалка
-events.on('modal:open', () => {
+
+/**
+ * Presenter (обработчики событий)
+ */
+events.on(ModelStates.catalogChange, (event: { items: IProduct[], totalPrice: number }) => {
+    // basketModel.add(event.items[0].id);
+    console.log(basketModel.items);
+})
+
+events.on(ModelStates.createOrder, (event: { item: IOrderResult }) => {
+    console.log(event.item);
+})
+
+
+events.on(ViewStates.basketOpen, () => {
+    console.log("open basket");
+})
+
+
+// Блокируем/разблокируем прокрутку страницы если открыта/закрыта модалка
+events.on(ModalStates.open, () => {
     page.locked = true;
 });
-
-// ... и разблокируем
-events.on('modal:close', () => {
+events.on(ModalStates.close, () => {
     page.locked = false;
 });
 
 
-larekApi.getProducts()
-    .then(items => {
-        catalogModel.setItems(items);
 
-        cartModel.add("854cef69-976d-4c2a-a18c-2aa45046c390");
-        cartModel.add("b06cde61-912f-4663-9751-09956c0eed67");
-        renderPage(catalogModel.items);
-    })
-    .catch(err => console.error(err));
+// Загружаем список товаров
+catalogModel
+    .loadProducts()
+    .then(() => page.render())
+    .catch(err => console.error(err))
+
+
+// *Test order
+// orderModel.order = {
+//     payment: "online",
+//     email: "test@test.ru",
+//     phone: "+71234567890",
+//     address: "Spb Vosstania 1",
+//     total: 2200,
+//     items: [
+//         "854cef69-976d-4c2a-a18c-2aa45046c390",
+//         "c101ab44-ed99-4a54-990d-47aa2bb4e7d9"
+//     ]
+// }
+
+// orderModel.createOrder().then(() => console.log(console.log("!!!", basketModel.totalPrice)));
+

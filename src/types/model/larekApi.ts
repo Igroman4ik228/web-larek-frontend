@@ -1,7 +1,7 @@
 export type ApiListResponse<Type> = {
     total: number,
     items: Type[]
-};
+}
 
 export interface IProduct {
     id: string;
@@ -29,7 +29,7 @@ export interface IOrderResult {
 }
 
 export interface ILarekApi {
-    getProducts: () => Promise<IProduct[]>;
+    getProductList: () => Promise<IProduct[]>;
     getProduct: (id: string) => Promise<IProduct>;
     createOrder: (order: IOrder) => Promise<IOrderResult>;
 }

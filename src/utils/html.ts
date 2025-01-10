@@ -95,7 +95,12 @@ export function setElementProps<T extends HTMLElement>(
  */
 export function cloneTemplate<T extends HTMLElement>(query: string | HTMLTemplateElement): T {
     const template = ensureElement(query) as HTMLTemplateElement;
-    return template.content.firstElementChild.cloneNode(true) as T;
+    const first = template.content.firstElementChild
+    if (!first) {
+        throw new Error('Template is empty');
+    }
+
+    return first.cloneNode(true) as T;
 }
 
 /**

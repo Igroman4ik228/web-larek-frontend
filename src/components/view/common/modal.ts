@@ -1,9 +1,10 @@
+import { ModalStates } from "../../../types";
 import { IEvents } from "../../../types/base/events";
 import { ensureElement } from "../../../utils/html";
 import { Component } from "../../base/component";
 
 interface IModalData {
-    content: HTMLElement;
+    content: HTMLElement | null;
 }
 
 export class ModalView extends Component<IModalData> {
@@ -21,19 +22,22 @@ export class ModalView extends Component<IModalData> {
         this._content.addEventListener('click', (event) => event.stopPropagation());
     }
 
-    set content(value: HTMLElement) {
-        this._content.replaceChildren(value);
+    set content(value: HTMLElement | null) {
+        if (value === null)
+            this._content.replaceChildren();
+        else
+            this._content.replaceChildren(value);
     }
 
     open() {
-        this.container.classList.add('modal_active');
-        this.events.emit('modal:open');
+        this.container.classList.add("modal_active");
+        this.events.emit(ModalStates.open);
     }
 
     close() {
-        this.container.classList.remove('modal_active');
+        this.container.classList.remove("modal_active");
         this.content = null;
-        this.events.emit('modal:close');
+        this.events.emit(ModalStates.close);
     }
 
     render(data: IModalData): HTMLElement {
