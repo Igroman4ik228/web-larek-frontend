@@ -1,24 +1,25 @@
+import { IOnClickEvent } from "../../../types";
+import { ISuccessData } from "../../../types/view/common/success";
+import { formatCurrency } from "../../../utils";
 import { ensureElement } from "../../../utils/html";
 import { Component } from "../../base/component";
 
-interface ISuccess {
-    total: number;
-}
-
-interface ISuccessActions {
-    onClick: () => void;
-}
-
-export class SuccessView extends Component<ISuccess> {
+export class SuccessView extends Component<ISuccessData> {
     protected _close: HTMLElement;
+    protected _totalPrice: HTMLElement;
 
-    constructor(container: HTMLElement, actions: ISuccessActions) {
+    constructor(container: HTMLElement, actions: IOnClickEvent) {
         super(container);
 
-        this._close = ensureElement<HTMLElement>('.state__action', this.container);
+        this._close = ensureElement<HTMLElement>(".order-success__close", container);
+        this._totalPrice = ensureElement<HTMLElement>(".order-success__description", container);
 
-        if (actions?.onClick) {
+        if (actions.onClick) {
             this._close.addEventListener('click', actions.onClick);
         }
+    }
+
+    set totalPrice(value: number) {
+        this.setText(this._totalPrice, `Списано ${formatCurrency(value)}`);
     }
 }

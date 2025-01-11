@@ -11,7 +11,7 @@ export class Api {
         this.baseUrl = baseUrl;
         this._options = {
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
                 ...(options.headers as object ?? {})
             }
         };
@@ -26,7 +26,7 @@ export class Api {
     }
 
     protected async _get<T>(uri: string) {
-        const method = 'GET';
+        const method = "GET";
         const response = await fetch(this.baseUrl + uri, {
             ...this._options,
             method,
@@ -37,7 +37,7 @@ export class Api {
     protected async _post<T>(
         uri: string,
         data: object,
-        method: ApiPostMethods = 'POST'
+        method: ApiPostMethods = "POST"
     ) {
         const response = await fetch(this.baseUrl + uri, {
             ...this._options,

@@ -9,7 +9,7 @@ export function isEmpty(value: any): boolean {
 }
 
 export function isBoolean(v: unknown): v is boolean {
-    return typeof v === 'boolean';
+    return typeof v === "boolean";
 }
 
 export function pascalToKebab(value: string): string {
@@ -43,11 +43,12 @@ export function getObjectProperties(
         )
     )
         .filter(([name, prop]: [string, PropertyDescriptor]) =>
-            filter ? filter(name, prop) : (name !== 'constructor'))
+            filter ? filter(name, prop) : (name !== "constructor"))
 
         .map(([name, prop]) => name);
 }
 
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number | null): string {
+    if (value === null) return "Бесценно";
     return `${value} ${CURRENCY}`
 }

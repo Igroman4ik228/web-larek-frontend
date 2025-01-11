@@ -1,4 +1,4 @@
-import { isPlainObject, isSelector } from ".";
+import { isBoolean, isPlainObject, isSelector } from ".";
 import { ElementChild, ElementProps, SelectorCollection, SelectorElement } from "../types/html";
 
 /**
@@ -23,7 +23,7 @@ export function ensureElement<T extends HTMLElement>(
     if (selectorElement instanceof HTMLElement) {
         return selectorElement as T;
     }
-    throw new Error('Unknown selector element');
+    throw new Error("Unknown selector element");
 }
 
 /**
@@ -81,10 +81,10 @@ export function setElementProps<T extends HTMLElement>(
 ) {
     for (const key in props) {
         const value = props[key];
-        if (isPlainObject(value) && key === 'dataset') {
+        if (isPlainObject(value) && key === "dataset") {
             setElementData(element, value);
         } else {
-            // @ts-expect-error fix indexing later
+            // @ts-expect-error fix indexing 
             element[key] = isBoolean(value) ? value : String(value);
         }
     }
@@ -95,7 +95,12 @@ export function setElementProps<T extends HTMLElement>(
  */
 export function cloneTemplate<T extends HTMLElement>(query: string | HTMLTemplateElement): T {
     const template = ensureElement(query) as HTMLTemplateElement;
-    return template.content.firstElementChild.cloneNode(true) as T;
+    const first = template.content.firstElementChild
+    if (!first) {
+        throw new Error("Template is empty");
+    }
+
+    return first.cloneNode(true) as T;
 }
 
 /**
@@ -122,13 +127,6 @@ export function getElementData<T extends Record<string, unknown>>(
         data[key as keyof T] = scheme[key](el.dataset[key]);
     }
     return data as T;
-}
-
-/**
- * Для использования элемента или массива элементов в element.replaceChildren
- */
-export function isChildElement(x: unknown): x is ElementChild {
-    return x instanceof HTMLElement || Array.isArray(x);
 }
 
 export function bem(

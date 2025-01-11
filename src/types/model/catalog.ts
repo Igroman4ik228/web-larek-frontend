@@ -1,7 +1,7 @@
 import { IProduct } from "./larekApi";
 
 export interface ICatalogModel {
-    items: IProduct[];
-    setItems(items: IProduct[]): void;
+    products: IProduct[];
     getProduct(id: string): IProduct;
+    loadProducts(): Promise<void>;
 }

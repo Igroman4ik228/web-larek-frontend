@@ -10,6 +10,10 @@
     flex-grow: 1;
   }
 
+  &__errors {
+    color: $error;
+  }
+
   &__input {
     background: transparent;
     color: white;

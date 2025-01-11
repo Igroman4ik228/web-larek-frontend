@@ -1,47 +1,37 @@
-
+import { ViewStates } from "../../types";
 import { IEvents } from "../../types/base/events";
-import { ensureElement } from "../../utils/html";
+import { IPageData } from "../../types/view/page";
+import { ensureElement, setElementChildren } from "../../utils/html";
 import { Component } from "../base/component";
 
-
-interface IPage {
-    counter: number;
-    catalog: HTMLElement[];
-    locked: boolean;
-}
-
-export class PageView extends Component<IPage> {
-    protected _wrapper: HTMLElement;
+export class PageView extends Component<IPageData> {
     protected _catalog: HTMLElement;
     protected _counter: HTMLElement;
-    protected _cart: HTMLElement;
+    protected _wrapper: HTMLElement;
+    protected _basket: HTMLElement;
 
-    constructor(protected container: HTMLElement, protected events: IEvents) {
+    constructor(container: HTMLElement, events: IEvents) {
         super(container);
 
-        this._wrapper = ensureElement<HTMLElement>('.page__wrapper');
-        this._catalog = ensureElement<HTMLElement>('.gallery');
-        this._counter = ensureElement<HTMLElement>('.header__basket-counter');
-        this._cart = ensureElement<HTMLElement>('.header__basket');
+        this._catalog = ensureElement<HTMLElement>(".gallery");
+        this._counter = ensureElement<HTMLElement>(".header__basket-counter");
+        this._wrapper = ensureElement<HTMLElement>(".page__wrapper");
+        this._basket = ensureElement<HTMLElement>(".header__basket");
 
-        this._cart.addEventListener('click', () => {
-            this.events.emit("view:cart-open");
+        this._basket.addEventListener("click", () => {
+            events.emit(ViewStates.basketOpen);
         });
+    }
+
+    set catalog(items: HTMLElement[]) {
+        setElementChildren(this._catalog, items);
     }
 
     set counter(value: number) {
         this.setText(this._counter, String(value));
     }
 
-    set catalog(items: HTMLElement[]) {
-        this._catalog.replaceChildren(...items);
-    }
-
     set locked(value: boolean) {
-        if (value) {
-            this._wrapper.classList.add('page__wrapper_locked');
-        } else {
-            this._wrapper.classList.remove('page__wrapper_locked');
-        }
+        this.toggleClass(this._wrapper, "page__wrapper_locked", value);
     }
 }
