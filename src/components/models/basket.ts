@@ -16,37 +16,31 @@ export class BasketModel implements IBasketModel {
 
     get productIds() { return this._productIds; }
     get totalPrice() {
-        let totalPrice = 0
-        const products = this.catalogModel.products
-
-        for (const id of this.productIds) {
-
-            const product = products.find(
-                product => product.id === id
+        const productMap = new Map(
+            this.catalogModel.products.map(
+                product => [product.id, product.price]
             )
-            if (product && product.price !== null) {
-                totalPrice += product.price
-            }
-        };
-        return totalPrice
+        );
+
+        return this._productIds.reduce((total, id) => {
+            const price = productMap.get(id);
+
+            if (!price) return total;
+            return total + price;
+        }, 0); // Начальная сумма равна 0
     }
 
     add(productId: string) {
-        if (this.has(productId))
-            return;
-
+        if (this.has(productId)) return;
         this._productIds.push(productId);
 
         this.events.emit(ModelStates.basketChange);
     }
 
     remove(productId: string) {
-        if (!this.has(productId))
-            return;
-
+        if (!this.has(productId)) return;
         const index = this.getIndex(productId);
-        const deleteCount = 1
-        this._productIds.splice(index, deleteCount);
+        this._productIds.splice(index, 1);
 
         this.events.emit(ModelStates.basketChange);
     }
