@@ -1,14 +1,13 @@
 import { IOnClickEvent } from "../../types";
-import { IBaseCardView, ICardPreviewView, ICategory } from "../../types/view/card";
+import { IBaseCardData, ICardData, ICardPreviewData, ICategory } from "../../types/view/card";
 import { formatCurrency } from "../../utils";
 import { ensureElement } from "../../utils/html";
 import { Component } from "../base/component";
 
-export abstract class BaseCardView<T extends IBaseCardView> extends Component<T> {
+export abstract class BaseCardView<T extends IBaseCardData> extends Component<T> {
     protected _category: HTMLElement;
     protected _title: HTMLElement;
     protected _image: HTMLImageElement;
-    protected _price: HTMLElement;
 
     constructor(readonly container: HTMLElement) {
         super(container);
@@ -16,7 +15,6 @@ export abstract class BaseCardView<T extends IBaseCardView> extends Component<T>
         this._category = ensureElement<HTMLElement>(".card__category", container);
         this._title = ensureElement<HTMLElement>(".card__title", container);
         this._image = ensureElement<HTMLImageElement>(".card__image", container);
-        this._price = ensureElement<HTMLElement>(".card__price", container);
     }
 
     set category(item: ICategory) {
@@ -37,19 +35,17 @@ export abstract class BaseCardView<T extends IBaseCardView> extends Component<T>
     set image(value: string) {
         this.setImage(this._image, value, this.title)
     }
-
-    set price(value: number) {
-        this.setText(this._price, formatCurrency(value));
-    }
 }
 
-export class CardView extends BaseCardView<IBaseCardView> {
+export class CardView extends BaseCardView<ICardData> {
+    protected _price: HTMLElement;
     protected _buttonPreview: HTMLButtonElement | null;
 
-    constructor(readonly container: HTMLElement, actions: IOnClickEvent) {
+    constructor(container: HTMLElement, actions: IOnClickEvent) {
         super(container);
 
         this._buttonPreview = container.querySelector(".gallery__item");
+        this._price = ensureElement<HTMLElement>(".card__price", container);
 
         if (!actions.onClick) return;
 
@@ -58,15 +54,21 @@ export class CardView extends BaseCardView<IBaseCardView> {
         else
             container.addEventListener("click", actions.onClick);
     }
+
+    set price(value: number) {
+        this.setText(this._price, formatCurrency(value));
+    }
 }
 
-export class CardPreviewView extends BaseCardView<ICardPreviewView> {
+export class CardPreviewView extends BaseCardView<ICardPreviewData> {
+    protected _price: HTMLElement;
     protected _description: HTMLElement;
     protected _buttonBuy: HTMLButtonElement;
 
-    constructor(readonly container: HTMLElement, actions: IOnClickEvent) {
+    constructor(container: HTMLElement, actions: IOnClickEvent) {
         super(container);
 
+        this._price = ensureElement<HTMLElement>(".card__price", container);
         this._description = ensureElement<HTMLElement>(".card__text", container);
         this._buttonBuy = ensureElement<HTMLButtonElement>(".card__button", container);
 
@@ -84,5 +86,11 @@ export class CardPreviewView extends BaseCardView<ICardPreviewView> {
             this.setText(this._buttonBuy, "Убрать из корзины");
         else
             this.setText(this._buttonBuy, "В корзину");
+    }
+
+    set price(value: number | null) {
+        this.setDisabled(this._buttonBuy, value === null);
+
+        this.setText(this._price, formatCurrency(value));
     }
 }

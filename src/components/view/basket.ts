@@ -1,11 +1,11 @@
 import { IOnClickEvent, ViewStates } from "../../types";
 import { IEvents } from "../../types/base/events";
-import { IBasketItemView, IBasketView } from "../../types/view/basket";
+import { IBasketData, IBasketItemData } from "../../types/view/basket";
 import { formatCurrency } from "../../utils";
 import { ensureElement, setElementChildren } from "../../utils/html";
 import { Component } from "../base/component";
 
-export class BasketItemView extends Component<IBasketItemView> {
+export class BasketItemView extends Component<IBasketItemData> {
     protected _index: HTMLElement;
     protected _price: HTMLElement;
     protected _title: HTMLElement;
@@ -43,7 +43,7 @@ export class BasketItemView extends Component<IBasketItemView> {
     }
 }
 
-export class BasketView extends Component<IBasketView> {
+export class BasketView extends Component<IBasketData> {
     protected _containerForItems: HTMLElement;
     protected _totalPrice: HTMLElement;
     protected _submit: HTMLButtonElement;

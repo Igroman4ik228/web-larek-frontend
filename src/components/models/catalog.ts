@@ -11,16 +11,11 @@ export class CatalogModel implements ICatalogModel {
 
     constructor(protected events: IEvents, protected larekApi: ILarekApi) { }
 
-    get products(): IProduct[] {
-        return this._products;
-    }
+    get products(): IProduct[] { return this._products; }
 
     set products(value: IProduct[]) {
         this._products = value;
-        this.events.emit(
-            ModelStates.catalogChange,
-            { items: value }
-        );
+        this.events.emit(ModelStates.catalogChange);
     }
 
     getProduct(id: string): IProduct {
@@ -32,6 +27,8 @@ export class CatalogModel implements ICatalogModel {
     }
 
     async loadProducts() {
-        this.products = await this.larekApi.getProductList();
+        this.larekApi.getProductList()
+            .then((data) => this.products = data)
+            .catch((err) => console.error(err));
     }
 }

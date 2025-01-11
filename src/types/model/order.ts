@@ -1,8 +1,12 @@
-import { IOrder, IOrderResult } from "./larekApi";
+import { IOrderForm } from "../view/order";
 
 export interface IOrderModel {
-    order: IOrder;
-    createOrder: () => Promise<IOrderResult>;
+    readonly formErrors: FormErrors;
+    setOrderField(field: keyof IOrderForm, value: string): void;
+    validateOrder(): boolean;
+    isValidOrderPayment(): boolean;
+    isValidOrderContact(): boolean;
+    createOrder: () => Promise<void>;
 }
 
-export type FormErrors = Partial<Record<keyof IOrder, string>>;
+export type FormErrors = Partial<Record<keyof IOrderForm, string>>;

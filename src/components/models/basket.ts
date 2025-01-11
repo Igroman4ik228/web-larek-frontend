@@ -7,70 +7,61 @@ import { ICatalogModel } from "../../types/model/catalog";
  * Модель для корзины
  */
 export class BasketModel implements IBasketModel {
-    protected _items: string[] = [];
-    protected _totalPrice = 0;
+    protected _productIds: string[] = [];
 
-    constructor(protected events: IEvents, protected catalogModel: ICatalogModel) { }
+    constructor(
+        protected readonly events: IEvents,
+        protected readonly catalogModel: ICatalogModel
+    ) { }
 
-    get items() { return this._items }
-    get totalPrice() { return this._totalPrice }
+    get productIds() { return this._productIds; }
+    get totalPrice() {
+        let totalPrice = 0
+        const products = this.catalogModel.products
 
-    add(id: string) {
-        if (this._items.includes(id))
+        for (const id of this.productIds) {
+
+            const product = products.find(
+                product => product.id === id
+            )
+            if (product && product.price !== null) {
+                totalPrice += product.price
+            }
+        };
+        return totalPrice
+    }
+
+    add(productId: string) {
+        if (this.has(productId))
             return;
 
-        this._items.push(id);
+        this._productIds.push(productId);
 
-        const product = this.catalogModel.getProduct(id);
-        if (product.price !== null) {
-            this._totalPrice += product.price;
-        };
-
-        this.events.emit(
-            ModelStates.basketChange, { ids: this._items }
-        );
+        this.events.emit(ModelStates.basketChange);
     }
 
-    remove(id: string) {
-        if (!this.has(id))
+    remove(productId: string) {
+        if (!this.has(productId))
             return;
 
-        const index = this._items.indexOf(id);
-        this._items.splice(index, 1);
+        const index = this.getIndex(productId);
+        const deleteCount = 1
+        this._productIds.splice(index, deleteCount);
 
-        const product = this.catalogModel.getProduct(id);
-        if (product.price !== null) {
-            this._totalPrice -= product.price;
-        };
-
-        this.events.emit(
-            ModelStates.basketChange, { ids: this._items }
-        );
+        this.events.emit(ModelStates.basketChange);
     }
 
-    has(id: string) {
-        return this._items.includes(id);
+    has(productId: string) {
+        return this._productIds.includes(productId);
     }
 
-    getIndex(id: string) {
-        return this._items.indexOf(id);
-    }
-
-    validateTotalPrice() {
-        if (this._totalPrice <= 0) {
-            return false
-        }
-
-        return true
+    getIndex(productId: string) {
+        return this._productIds.indexOf(productId);
     }
 
     clear() {
-        this._items = [];
-        this._totalPrice = 0;
+        this._productIds = [];
 
-        this.events.emit(
-            ModelStates.basketChange,
-            { ids: this._items }
-        );
+        this.events.emit(ModelStates.basketChange);
     }
 }

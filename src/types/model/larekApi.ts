@@ -1,3 +1,4 @@
+
 export type ApiListResponse<Type> = {
     total: number,
     items: Type[]
@@ -12,21 +13,11 @@ export interface IProduct {
     price: number | null;
 }
 
-export type PaymentMethod = "online" | "cash";
-
-export interface IOrderPayment {
-    payment: PaymentMethod;
-    email: string;
-}
-
-export interface IOrderContact {
-    phone: string;
+export interface IOrder {
+    payment: string;
     address: string;
-}
-
-export type IOrderForm = IOrderPayment & IOrderContact;
-
-export interface IOrder extends IOrderForm {
+    email: string;
+    phone: string;
     total: number;
     items: string[];
 }

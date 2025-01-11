@@ -1,5 +1,5 @@
 export interface IPageData {
-    counter: number;
     catalog: HTMLElement[];
+    counter: number;
     locked: boolean;
 }

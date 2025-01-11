@@ -11,14 +11,18 @@ export interface ICategory {
     colorClass: string;
 }
 
-export interface IBaseCardView {
+export interface IBaseCardData {
     category: ICategory;
     title: string;
     image: string;
+}
+
+export interface ICardData extends IBaseCardData {
     price: number | null;
 }
 
-export interface ICardPreviewView extends IBaseCardView {
+export interface ICardPreviewData extends IBaseCardData {
+    price: number | null;
     description: string;
     hasInBasket: boolean;
 }

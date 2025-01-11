@@ -3,11 +3,11 @@ import { IFormState } from "../../../types/view/common/form";
 import { ensureElement } from "../../../utils/html";
 import { Component } from "../../base/component";
 
-export class Form<T> extends Component<IFormState> {
+export class FormView<T> extends Component<IFormState> {
     protected _submit: HTMLButtonElement;
     protected _errors: HTMLElement;
 
-    constructor(protected container: HTMLFormElement, protected events: IEvents) {
+    constructor(protected readonly container: HTMLFormElement, protected readonly events: IEvents) {
         super(container);
 
         this._submit = ensureElement<HTMLButtonElement>("button[type=submit]", this.container);
@@ -22,12 +22,12 @@ export class Form<T> extends Component<IFormState> {
 
         this.container.addEventListener("submit", (e: Event) => {
             e.preventDefault();
-            this.events.emit(`${this.container.name}:submit`);
+            this.events.emit(`view:${this.container.name}-submit`);
         });
     }
 
     protected onInputChange(field: keyof T, value: string) {
-        this.events.emit(`${this.container.name}.${String(field)}:change`, {
+        this.events.emit(`view:${this.container.name}.${String(field)}-change`, {
             field,
             value
         });

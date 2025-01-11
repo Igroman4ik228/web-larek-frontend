@@ -6,4 +6,7 @@ export const Templates = {
     catalog: ensureElement<HTMLTemplateElement>("#card-catalog"),
     basketItem: ensureElement<HTMLTemplateElement>("#card-basket"),
     cardPreview: ensureElement<HTMLTemplateElement>("#card-preview"),
+    orderPayment: ensureElement<HTMLTemplateElement>("#order"),
+    orderContacts: ensureElement<HTMLTemplateElement>("#contacts"),
+    success: ensureElement<HTMLTemplateElement>("#success"),
 };
