@@ -2,19 +2,23 @@ import { ModelStates } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { IBasketModel } from "../../types/model/basket";
 import { ICatalogModel } from "../../types/model/catalog";
+import { ILocalStorageModel, PersistedState } from "../../types/model/localStorage";
 
 /**
  * Модель для корзины
  */
 export class BasketModel implements IBasketModel {
-    protected _productIds: string[] = [];
+    // Set, так как уникальные элементы в корзине
+    protected _productIds: Set<string> = new Set();
 
     constructor(
         protected readonly events: IEvents,
-        protected readonly catalogModel: ICatalogModel
+        protected readonly catalogModel: ICatalogModel,
+        protected readonly localStorage: ILocalStorageModel
     ) { }
 
-    get productIds() { return this._productIds; }
+    get productIds() { return Array.from(this._productIds); }
+
     get totalPrice() {
         const productMap = new Map(
             this.catalogModel.products.map(
@@ -22,7 +26,7 @@ export class BasketModel implements IBasketModel {
             )
         );
 
-        return this._productIds.reduce((total, id) => {
+        return Array.from(this._productIds).reduce((total, id) => {
             const price = productMap.get(id);
 
             if (!price) return total;
@@ -30,32 +34,68 @@ export class BasketModel implements IBasketModel {
         }, 0); // Начальная сумма равна 0
     }
 
-    add(productId: string) {
-        if (this.has(productId)) return;
-        this._productIds.push(productId);
+    get isValid() { return this.totalPrice > 0; }
 
+    add(productId: string) {
+        this._productIds.add(productId);
+        this.persistState();
         this.events.emit(ModelStates.basketChange);
     }
 
     remove(productId: string) {
-        if (!this.has(productId)) return;
-        const index = this.getIndex(productId);
-        this._productIds.splice(index, 1);
-
-        this.events.emit(ModelStates.basketChange);
+        if (this._productIds.delete(productId)) {
+            this.persistState();
+            this.events.emit(ModelStates.basketChange);
+        }
     }
 
     has(productId: string) {
-        return this._productIds.includes(productId);
+        return this._productIds.has(productId);
     }
 
     getIndex(productId: string) {
-        return this._productIds.indexOf(productId);
+        return Array.from(this._productIds).indexOf(productId);
     }
 
     clear() {
-        this._productIds = [];
-
+        this._productIds.clear();
+        this.persistState();
         this.events.emit(ModelStates.basketChange);
+    }
+
+    persistState() {
+        const state: PersistedState = {
+            productIds: Array.from(this._productIds)
+        }
+        this.localStorage.set(JSON.stringify(state));
+    }
+
+    restoreState() {
+        const state = this.localStorage.get();
+        if (!state) return;
+        const data = JSON.parse(state) as PersistedState;
+
+        if (!this.validateState(data)) return;
+
+        this._productIds = new Set(data.productIds);
+        this.events.emit(ModelStates.basketChange);
+    }
+
+    validateState(value: PersistedState): boolean {
+        if (!Array.isArray(value.productIds))
+            return false;
+        if (value.productIds.length === 0)
+            return false;
+
+        // Проверка на существование товаров
+        try {
+            value.productIds.every(id => this.catalogModel.getProduct(id));
+        }
+        catch {
+            this.localStorage.set(JSON.stringify([]));
+            return false;
+        }
+
+        return true;
     }
 }

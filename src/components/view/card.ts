@@ -72,9 +72,8 @@ export class CardPreviewView extends BaseCardView<ICardPreviewData> {
         this._description = ensureElement<HTMLElement>(".card__text", container);
         this._buttonBuy = ensureElement<HTMLButtonElement>(".card__button", container);
 
-        if (actions.onClick) {
+        if (actions.onClick)
             this._buttonBuy.addEventListener("click", actions.onClick);
-        }
     }
 
     set description(value: string) {
@@ -82,15 +81,11 @@ export class CardPreviewView extends BaseCardView<ICardPreviewData> {
     }
 
     set hasInBasket(value: boolean) {
-        if (value)
-            this.setText(this._buttonBuy, "Убрать из корзины");
-        else
-            this.setText(this._buttonBuy, "В корзину");
+        this.setText(this._buttonBuy, value ? "Убрать из корзины" : "В корзину");
     }
 
     set price(value: number | null) {
         this.setDisabled(this._buttonBuy, value === null);
-
         this.setText(this._price, formatCurrency(value));
     }
 }

@@ -1,8 +1,8 @@
-import { IOnClickEvent } from "../../../types";
-import { ISuccessData } from "../../../types/view/common/success";
-import { formatCurrency } from "../../../utils";
-import { ensureElement } from "../../../utils/html";
-import { Component } from "../../base/component";
+import { IOnClickEvent } from "../../types";
+import { ISuccessData } from "../../types/view/success";
+import { formatCurrency } from "../../utils";
+import { ensureElement } from "../../utils/html";
+import { Component } from "../base/component";
 
 export class SuccessView extends Component<ISuccessData> {
     protected _close: HTMLElement;

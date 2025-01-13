@@ -1,12 +1,7 @@
 import { IEvents } from "../../types/base/events";
-import { IOrderContactData, IOrderPaymentData, PaymentMethod } from "../../types/view/order";
+import { IOrderContactData, IOrderPaymentData, IOrderPaymentEvents, PaymentMethod } from "../../types/view/order";
 import { ensureElement } from "../../utils/html";
-import { FormView } from "./common/form";
-
-interface IOrderPaymentEvents {
-    onClickCash: () => void;
-    onClickOnline: () => void;
-}
+import { FormView } from "./form";
 
 export class OrderPaymentView extends FormView<IOrderPaymentData> {
     protected _online: HTMLButtonElement;
@@ -29,18 +24,20 @@ export class OrderPaymentView extends FormView<IOrderPaymentData> {
         }
     }
 
-    set payment(value: PaymentMethod) {
-        if (value === "cash") {
-            this._cash.classList.add("button_alt-active");
-            this._online.classList.remove("button_alt-active");
-        }
-        else if (value === "online") {
-            this._online.classList.add("button_alt-active");
-            this._cash.classList.remove("button_alt-active");
-        }
-        else {
-            this._online.classList.remove("button_alt-active");
-            this._cash.classList.remove("button_alt-active");
+    set payment(value: PaymentMethod | "") {
+        switch (value) {
+            case "cash":
+                this._cash.classList.add("button_alt-active");
+                this._online.classList.remove("button_alt-active");
+                break;
+            case "online":
+                this._online.classList.add("button_alt-active");
+                this._cash.classList.remove("button_alt-active");
+                break;
+            case "":
+                this._online.classList.remove("button_alt-active");
+                this._cash.classList.remove("button_alt-active");
+                break;
         }
     }
 

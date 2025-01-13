@@ -1,8 +1,8 @@
-import { ModalStates } from "../../../types";
-import { IEvents } from "../../../types/base/events";
-import { IModalData } from "../../../types/view/common/modal";
-import { ensureElement, setElementChildren } from "../../../utils/html";
-import { Component } from "../../base/component";
+import { ModalStates } from "../../types";
+import { IEvents } from "../../types/base/events";
+import { IModalData } from "../../types/view/modal";
+import { ensureElement, setElementChildren } from "../../utils/html";
+import { Component } from "../base/component";
 
 export class ModalView extends Component<IModalData> {
     protected _closeButton: HTMLButtonElement;

@@ -26,11 +26,9 @@ export class LarekApi extends Api implements ILarekApi {
 
     /**
      * Получить товар
-     * @param id - ID товара
-     * @throws {Error} - если товар с данным ID не найден
      */
-    async getProduct(id: string): Promise<IProduct> {
-        return this._get<IProduct>(`/product/${id}`)
+    async getProduct(productId: string): Promise<IProduct> {
+        return this._get<IProduct>(`/product/${productId}`)
             .then(item => ({
                 ...item,
                 image: this.cdn + item.image,
@@ -39,12 +37,6 @@ export class LarekApi extends Api implements ILarekApi {
 
     /**
      * Создать заказ
-     * @param order - заказ
-     * @returns созданный заказ
-     * @throws {Error} - если список товаров в заказе пуст
-     * @throws {Error} - если товар с данным ID не найден 
-     * @throws {Error} - если неверная сумма заказа 
-     * @throws {Error} - если не указан адрес
      */
     async createOrder(order: IOrder): Promise<IOrderResult> {
         if (!order.items.length) {

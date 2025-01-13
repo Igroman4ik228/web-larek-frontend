@@ -1,13 +1,16 @@
-import { IEvents } from "../../../types/base/events";
-import { IFormState } from "../../../types/view/common/form";
-import { ensureElement } from "../../../utils/html";
-import { Component } from "../../base/component";
+import { IEvents } from "../../types/base/events";
+import { IFormState } from "../../types/view/form";
+import { ensureElement } from "../../utils/html";
+import { Component } from "../base/component";
 
 export class FormView<T> extends Component<IFormState> {
     protected _submit: HTMLButtonElement;
     protected _errors: HTMLElement;
 
-    constructor(protected readonly container: HTMLFormElement, protected readonly events: IEvents) {
+    constructor(
+        protected readonly container: HTMLFormElement,
+        protected readonly events: IEvents
+    ) {
         super(container);
 
         this._submit = ensureElement<HTMLButtonElement>("button[type=submit]", this.container);

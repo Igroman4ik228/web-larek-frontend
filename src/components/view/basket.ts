@@ -11,8 +11,6 @@ export class BasketItemView extends Component<IBasketItemData> {
     protected _title: HTMLElement;
     protected _removeButton: HTMLButtonElement;
 
-    protected _id = "";
-
     constructor(container: HTMLElement, events: IEvents) {
         super(container);
 
@@ -22,7 +20,7 @@ export class BasketItemView extends Component<IBasketItemData> {
         this._removeButton = ensureElement<HTMLButtonElement>(".basket__item-delete", container);
 
         this._removeButton.addEventListener("click", () =>
-            events.emit(ViewStates.basketItemRemove, { id: this._id })
+            events.emit(ViewStates.basketItemRemove, { id: this.id })
         );
     }
 
@@ -31,7 +29,7 @@ export class BasketItemView extends Component<IBasketItemData> {
     }
 
     set id(value: string) {
-        this._id = value;
+        this.id = value;
     }
 
     set title(value: string) {
@@ -66,7 +64,10 @@ export class BasketView extends Component<IBasketData> {
     }
 
     set totalPrice(value: number) {
-        this.setDisabled(this._submit, value === 0);
         this.setText(this._totalPrice, formatCurrency(value));
+    }
+
+    set valid(value: boolean) {
+        this.setDisabled(this._submit, !value);
     }
 }

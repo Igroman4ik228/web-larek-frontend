@@ -3,7 +3,7 @@ import { IEvents } from "../../types/base/events";
 import { IBasketModel } from "../../types/model/basket";
 import { ILarekApi, IOrder } from "../../types/model/larekApi";
 import { FormErrors, IOrderModel } from "../../types/model/order";
-import { IOrderForm } from "../../types/view/order";
+import { ErrorMessages, IOrderForm } from "../../types/view/order";
 
 export class OrderModel implements IOrderModel {
     protected _order: IOrder = {
@@ -14,99 +14,75 @@ export class OrderModel implements IOrderModel {
         total: 0,
         items: []
     };
-    protected _formErrors: FormErrors = {
-        payment: "",
-        address: "",
-        email: "",
-        phone: ""
+
+    protected _formErrors: FormErrors = {};
+
+    protected readonly VALIDATIONS: { [key in keyof IOrderForm]: string } = {
+        payment: ErrorMessages.Payment,
+        address: ErrorMessages.Address,
+        email: ErrorMessages.Email,
+        phone: ErrorMessages.Phone
     };
 
     constructor(
-        protected events: IEvents,
-        protected larekApi: ILarekApi,
-        protected basketModel: IBasketModel
+        protected readonly events: IEvents,
+        protected readonly larekApi: ILarekApi,
+        protected readonly basketModel: IBasketModel
     ) { }
+
+    get order(): IOrder {
+        return this._order;
+    }
 
     get formErrors(): FormErrors {
         return this._formErrors;
     }
 
     setOrderField(field: keyof IOrderForm, value: string) {
-        if (field === "payment") {
-            if (value === "")
-                throw new Error(`Invalid payment method: ${value}`);
+        this._order[field] = value;
 
-            this._order[field] = value as "cash" | "online";
-        }
-        else
-            this._order[field] = value;
+        if (field === "payment")
+            this.events.emit(ModelStates.paymentMethodChange);
 
         this.validateOrder();
     }
 
-    validateOrder(): boolean {
-        const errors: typeof this._formErrors = {};
-        if (!this._order.payment) {
-            errors.payment = "Необходимо выбрать способ оплаты";
-        }
-        if (!this._order.address) {
-            errors.address = "Необходимо указать адрес";
-        }
-        if (!this._order.email) {
-            errors.email = "Необходимо указать email";
-        }
-        if (!this._order.phone) {
-            errors.phone = "Необходимо указать телефон";
-        }
+    validateOrder(
+        fields: (keyof IOrderForm)[] =
+            Object.keys(this.VALIDATIONS) as (keyof IOrderForm)[]
+    ): boolean {
+        const errors: FormErrors = {};
+
+        fields.forEach(field => {
+            if (!this._order[field]) {
+                errors[field] = this.VALIDATIONS[field];
+            }
+            // Сюда можно дописать ещё какие-то проверки и разные сообщения об ошибках
+        })
 
         this._formErrors = errors;
-        this.events.emit(ModelStates.formPaymentErrorChange, this._formErrors);
-        this.events.emit(ModelStates.formContactErrorChange, this._formErrors);
-
+        this.events.emit(ModelStates.formErrorChange);
         return Object.keys(errors).length === 0;
     }
 
-    isValidOrderPayment(): boolean {
-        if (this._order.payment === "" || this._order.address === "") {
-            return false
-        }
-        if (this._order.payment === undefined || this._order.address === undefined) {
-            return false
-        }
-        return true
-    }
-
-    isValidOrderContact(): boolean {
-        if (this._order.email === "" || this._order.phone === "") {
-            return false
-        }
-        if (this._order.email === undefined || this._order.phone === undefined) {
-            return false
-        }
-        return true
-    }
-
     async createOrder(): Promise<void> {
-        this._order.items = this.basketModel.productIds
-        this._order.total = this.basketModel.totalPrice
+        if (!this.validateOrder())
+            throw new Error("Данные заказа не корректны");
 
-        this.larekApi.createOrder(this._order)
-            .then(orderResult => {
+        this.prepareOrder();
+
+        await this.larekApi.createOrder(this._order)
+            .then(result => {
+                // Очистка корзины
                 this.basketModel.clear();
 
-                this._order = {
-                    payment: "",
-                    address: "",
-                    email: "",
-                    phone: "",
-                    items: [],
-                    total: 0
-                };
+                this.events.emit(ModelStates.successOpen, { total: result.total });
+            })
+            .catch(err => console.error(err));
+    }
 
-                this.events.emit(ModelStates.orderCreate, orderResult);
-            })
-            .catch(err => {
-                throw new Error(err);
-            })
+    protected prepareOrder(): void {
+        this._order.items = this.basketModel.productIds;
+        this._order.total = this.basketModel.totalPrice;
     }
 }

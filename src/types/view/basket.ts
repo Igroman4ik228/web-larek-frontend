@@ -8,4 +8,5 @@ export interface IBasketItemData {
 export interface IBasketData {
     items: HTMLElement[];
     totalPrice: number;
+    valid: boolean;
 }

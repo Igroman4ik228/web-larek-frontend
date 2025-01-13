@@ -1,11 +1,11 @@
 import { IOrderForm } from "../view/order";
+import { IOrder } from "./larekApi";
 
 export interface IOrderModel {
+    readonly order: IOrder;
     readonly formErrors: FormErrors;
     setOrderField(field: keyof IOrderForm, value: string): void;
-    validateOrder(): boolean;
-    isValidOrderPayment(): boolean;
-    isValidOrderContact(): boolean;
+    validateOrder(fields?: (keyof IOrderForm)[]): boolean;
     createOrder: () => Promise<void>;
 }
 

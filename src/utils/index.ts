@@ -1,4 +1,3 @@
-import { CURRENCY } from "./constants";
 
 export function isSelector<T>(x: string | T): x is string {
     return (typeof x === "string") && x.length > 1;
@@ -50,5 +49,5 @@ export function getObjectProperties(
 
 export function formatCurrency(value: number | null): string {
     if (value === null) return "Бесценно";
-    return `${value} ${CURRENCY}`
+    return `${value} синапсов`;
 }
