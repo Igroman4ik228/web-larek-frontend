@@ -7,16 +7,14 @@ export interface IOrderData {
     phone: string;
 }
 
+export type FormErrors = Partial<Record<keyof OrderForm, string>>;
+
 export interface IOrderModel {
     readonly order: IOrderData;
     readonly formErrors: FormErrors;
     setOrderField(field: keyof OrderForm, value: string): void;
     validateOrder(fields?: (keyof OrderForm)[]): boolean;
 }
-
-
-
-export type FormErrors = Partial<Record<keyof OrderForm, string>>;
 
 export enum ErrorMessages {
     Payment = "Необходимо выбрать способ оплаты",

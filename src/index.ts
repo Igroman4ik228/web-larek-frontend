@@ -14,9 +14,8 @@ import { BasketItemRemoveEvent, CardOrderEvent, CardSelectEvent, FormFieldChange
 import { IOrder, IProduct } from "./types/model/larekApi";
 import { CategoryColor } from "./types/view/card";
 import { PaymentMethod } from "./types/view/order";
-import { API_URL, CDN_URL } from "./utils/constants";
+import { API_URL, CDN_URL, TEMPLATES } from "./utils/constants";
 import { cloneTemplate, ensureElement } from "./utils/html";
-import { Templates } from "./utils/template";
 
 /**
  * Базовые компоненты
@@ -39,7 +38,7 @@ const orderModel = new OrderModel(events);
 /**
  * Отображения
  */
-const modalView = new ModalView(Templates.modal, events)
+const modalView = new ModalView(TEMPLATES.modal, events)
 const pageView = new PageView(document.body, events)
 const basketView = new BasketView(
     ensureElement<HTMLElement>(".basket"),
@@ -51,10 +50,10 @@ const basketView = new BasketView(
         }
     }
 )
-const orderPaymentView = new OrderPaymentView(cloneTemplate(Templates.orderPayment), events)
-const orderContactView = new OrderContactView(cloneTemplate(Templates.orderContacts), events)
+const orderPaymentView = new OrderPaymentView(cloneTemplate(TEMPLATES.orderPayment), events)
+const orderContactView = new OrderContactView(cloneTemplate(TEMPLATES.orderContacts), events)
 const successView = new SuccessView(
-    cloneTemplate(Templates.success),
+    cloneTemplate(TEMPLATES.success),
     { onClick: () => modalView.close() }
 );
 
@@ -68,7 +67,6 @@ events.on(ModelStates.catalogChange, () => {
 
 // Изменилось состояние корзина
 events.on(ModelStates.basketChange, () => {
-    basketModel.persistState();
     renderBasket(basketModel.productIds);
     pageView.counter = basketModel.productIds.length;
 })
@@ -194,18 +192,13 @@ events.on(ModalStates.close, () => {
 })
 
 larekApi.getProductList()
-    .then(products => {
-        catalogModel.products = products;
-
-        // Загружаем состояние корзины
-        basketModel.restoreState();
-    })
+    .then(products => catalogModel.products = products)
     .catch(err => console.error(err));
 
 
 function renderCard(item: IProduct): HTMLElement {
     const cardView = new CardView(
-        cloneTemplate(Templates.catalog),
+        cloneTemplate(TEMPLATES.catalog),
         { onClick: () => events.emit<CardSelectEvent>(ViewStates.cardSelect, { productId: item.id }) }
     );
 
@@ -222,7 +215,7 @@ function renderCard(item: IProduct): HTMLElement {
 
 function renderCardPreview(item: IProduct): HTMLElement {
     const cardPreviewView = new CardPreviewView(
-        cloneTemplate(Templates.cardPreview),
+        cloneTemplate(TEMPLATES.cardPreview),
         {
             onClick: () => {
                 // Проверка на отсутствие цены товара
@@ -255,7 +248,7 @@ function renderCardPreview(item: IProduct): HTMLElement {
 
 function renderCardBasket(productId: string): HTMLElement {
     const cardBasketView = new CardBasketView(
-        cloneTemplate(Templates.cardBasket),
+        cloneTemplate(TEMPLATES.cardBasket),
         events
     );
 

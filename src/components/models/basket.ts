@@ -2,8 +2,6 @@ import { ModelStates } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { IBasketModel } from "../../types/model/basket";
 import { ICatalogModel } from "../../types/model/catalog";
-import { PersistedState } from "../../types/model/localStorage";
-import { getState, setState } from "../../utils/localStorage";
 
 /**
  * Модель для корзины
@@ -57,47 +55,5 @@ export class BasketModel implements IBasketModel {
     clear() {
         this._productIds.clear();
         this.events.emit(ModelStates.basketChange);
-    }
-
-    persistState() {
-        const state: PersistedState = {
-            productIds: Array.from(this._productIds)
-        }
-        setState(JSON.stringify(state));
-    }
-
-    restoreState() {
-        const state = getState();
-
-        if (!state) return;
-        const data = JSON.parse(state) as PersistedState;
-
-        if (!this.validateState(data)) return;
-
-        this._productIds = new Set(data.productIds);
-        this.events.emit(ModelStates.basketChange);
-    }
-
-    validateState(value: PersistedState): boolean {
-        if (!Array.isArray(value.productIds))
-            return false;
-        if (value.productIds.length === 0)
-            return false;
-
-        // Проверка на существование товаров и валидность цен
-        try {
-            value.productIds.every(id => {
-                const product = this.catalogModel.getProduct(id)
-                if (product.price === null)
-                    throw new Error(`Product ${id} with null price cannot be in basket`);
-                return true
-            });
-        }
-        catch {
-            setState(JSON.stringify([]));
-            return false;
-        }
-
-        return true;
     }
 }

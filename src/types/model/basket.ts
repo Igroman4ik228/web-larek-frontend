@@ -1,6 +1,3 @@
-import { PersistedState } from "./localStorage";
-
-
 export interface IBasketModel {
     readonly productIds: string[];
     readonly totalPrice: number;
@@ -10,8 +7,4 @@ export interface IBasketModel {
     has(id: string): boolean;
     getIndex(id: string): number;
     clear(): void;
-    // Сохранение/восстановление корзины в localStorage
-    persistState(): void;
-    restoreState(): void;
-    validateState(value: PersistedState): boolean
 }
