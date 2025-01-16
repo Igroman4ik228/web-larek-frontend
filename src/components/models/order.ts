@@ -1,4 +1,4 @@
-import { ModelStates } from "../../types";
+import { ModelStates, SuccessOpenEvent } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { IBasketModel } from "../../types/model/basket";
 import { ILarekApi, IOrder } from "../../types/model/larekApi";
@@ -78,7 +78,7 @@ export class OrderModel implements IOrderModel {
                 // Очистка корзины
                 this.basketModel.clear();
 
-                this.events.emit(ModelStates.successOpen, { total: result.total });
+                this.events.emit<SuccessOpenEvent>(ModelStates.successOpen, { totalPrice: result.total });
             })
             .catch(err => console.error(err));
     }

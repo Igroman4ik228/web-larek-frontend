@@ -6,7 +6,7 @@ import { ensureElement } from "./html";
 export const Templates = {
     modal: ensureElement<HTMLTemplateElement>("#modal-container"),
     catalog: ensureElement<HTMLTemplateElement>("#card-catalog"),
-    basketItem: ensureElement<HTMLTemplateElement>("#card-basket"),
+    cardBasket: ensureElement<HTMLTemplateElement>("#card-basket"),
     cardPreview: ensureElement<HTMLTemplateElement>("#card-preview"),
     orderPayment: ensureElement<HTMLTemplateElement>("#order"),
     orderContacts: ensureElement<HTMLTemplateElement>("#contacts"),

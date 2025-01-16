@@ -1,4 +1,4 @@
-import { IProduct } from "./model/larekApi";
+import { OrderForm } from "./view/order";
 
 export interface IOnClickEvent {
     onClick: (event: MouseEvent) => void;
@@ -28,7 +28,23 @@ export enum ModelStates {
     successOpen = "model:success-open",
 }
 
+export type SuccessOpenEvent = {
+    totalPrice: number;
+};
 
-export type CatalogChangeEvent = {
-    catalog: IProduct[]
+export type BasketItemRemoveEvent = {
+    productId: string;
+};
+
+export type CardSelectEvent = {
+    productId: string;
+};
+
+export type CardOrderEvent = {
+    productId: string;
+};
+
+export type FormFieldChangeEvent = {
+    field: keyof OrderForm;
+    value: string;
 };

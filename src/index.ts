@@ -11,10 +11,10 @@ import { OrderContactView, OrderPaymentView } from "./components/view/order";
 import { PageView } from "./components/view/page";
 import { SuccessView } from "./components/view/success";
 import "./scss/styles.scss";
-import { ModalStates, ModelStates, ViewStates } from "./types";
+import { BasketItemRemoveEvent, CardOrderEvent, CardSelectEvent, FormFieldChangeEvent, ModalStates, ModelStates, SuccessOpenEvent, ViewStates } from "./types";
 import { IProduct } from "./types/model/larekApi";
 import { CategoryColor } from "./types/view/card";
-import { OrderForm, PaymentMethod } from "./types/view/order";
+import { PaymentMethod } from "./types/view/order";
 import { API_URL, CDN_URL } from "./utils/constants";
 import { cloneTemplate, ensureElement } from "./utils/html";
 import { Templates } from "./utils/template";
@@ -97,37 +97,37 @@ events.on(ModelStates.formErrorChange, () => {
 })
 
 // Открытие модального окна успеха
-events.on(ModelStates.successOpen, (result: { total: number }) => {
+events.on<SuccessOpenEvent>(ModelStates.successOpen, (event: SuccessOpenEvent) => {
     modalView.render({
         content: successView.render({
-            totalPrice: result.total
+            totalPrice: event.totalPrice
         })
     })
 })
 
 
 // Удаление товара из корзины
-events.on(ViewStates.basketItemRemove, (event: { id: string }) => {
-    basketModel.remove(event.id)
+events.on<BasketItemRemoveEvent>(ViewStates.basketItemRemove, (event: BasketItemRemoveEvent) => {
+    basketModel.remove(event.productId);
 })
 
 // Открытие карточки
-events.on(ViewStates.cardSelect, (event: { id: string }) => {
-    const product = catalogModel.getProduct(event.id)
+events.on<CardSelectEvent>(ViewStates.cardSelect, (event: CardSelectEvent) => {
+    const product = catalogModel.getProduct(event.productId);
     modalView.render({
         content: renderCardPreview(product)
-    })
+    });
 })
 
 // Добавление товара в корзину
-events.on(ViewStates.cardOrder, (event: { id: string }) => {
-    basketModel.add(event.id);
+events.on<CardOrderEvent>(ViewStates.cardOrder, (event: CardOrderEvent) => {
+    basketModel.add(event.productId);
 })
 
 // Открытие корзины
 events.on(ViewStates.basketOpen, () => {
     modalView.render({
-        content: renderBasket([...basketModel.productIds])
+        content: renderBasket(basketModel.productIds)
     })
 })
 
@@ -143,7 +143,7 @@ events.on(ViewStates.basketSubmit, () => {
 })
 
 // Изменение полей формы оплаты
-events.on(/^view:order\..*-change/, (event: { field: keyof OrderForm, value: string }) => {
+events.on<FormFieldChangeEvent>(/^view:order\..*-change/, (event: FormFieldChangeEvent) => {
     orderModel.setOrderField(event.field, event.value);
 })
 
@@ -159,11 +159,10 @@ events.on(ViewStates.orderPaymentSubmit, () => {
             errors: [email, phone].filter(Boolean).join("; ")
         })
     })
-
 })
 
 // Изменение полей формы контактов
-events.on(/^view:contacts\..*-change/, (event: { field: keyof OrderForm, value: string }) => {
+events.on<FormFieldChangeEvent>(/^view:contacts\..*-change/, (event: FormFieldChangeEvent) => {
     orderModel.setOrderField(event.field, event.value);
 })
 
@@ -189,14 +188,13 @@ catalogModel.loadProductList()
     .then(() => {
         // Загружаем состояние корзины
         basketModel.restoreState();
-        basketModel.remove(undefined as unknown as string);
     })
 
 
 function renderCard(item: IProduct): HTMLElement {
     const cardView = new CardView(
         cloneTemplate(Templates.catalog),
-        { onClick: () => events.emit(ViewStates.cardSelect, { id: item.id }) }
+        { onClick: () => events.emit<CardSelectEvent>(ViewStates.cardSelect, { productId: item.id }) }
     );
 
     return cardView.render({
@@ -220,9 +218,9 @@ function renderCardPreview(item: IProduct): HTMLElement {
                     return;
 
                 if (basketModel.has(item.id))
-                    events.emit(ViewStates.basketItemRemove, { id: item.id })
+                    events.emit<BasketItemRemoveEvent>(ViewStates.basketItemRemove, { productId: item.id })
                 else
-                    events.emit(ViewStates.cardOrder, { id: item.id })
+                    events.emit<CardOrderEvent>(ViewStates.cardOrder, { productId: item.id })
 
                 // Обновление карточки после события
                 cardPreviewView.hasInBasket = basketModel.has(item.id)
@@ -243,27 +241,25 @@ function renderCardPreview(item: IProduct): HTMLElement {
     })
 }
 
-function renderBasketItem(id: string): HTMLElement {
+function renderCardBasket(productId: string): HTMLElement {
     const cardBasketView = new CardBasketView(
-        cloneTemplate(Templates.basketItem),
+        cloneTemplate(Templates.cardBasket),
         events
     );
 
-    const product = catalogModel.getProduct(id);
-
+    const product = catalogModel.getProduct(productId);
     return cardBasketView.render({
-        index: basketModel.getIndex(id),
+        index: basketModel.getIndex(productId),
         id: product.id,
         title: product.title,
         price: product.price,
     });
 }
 
-function renderBasket(ids: string[]): HTMLElement {
+function renderBasket(productIds: string[]): HTMLElement {
     return basketView.render({
-        items: ids.map(id => renderBasketItem(id)),
+        items: productIds.map(productId => renderCardBasket(productId)),
         totalPrice: basketModel.totalPrice,
         valid: basketModel.isValid
     })
 }
-

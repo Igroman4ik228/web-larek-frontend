@@ -22,6 +22,8 @@ export interface ICardData extends IBaseCardData {
 }
 
 export interface ICardPreviewData extends ICardData {
+    category: ICategory;
+    image: string;
     description: string;
     hasInBasket: boolean;
 }

@@ -1,4 +1,4 @@
-import { IOnClickEvent, ViewStates } from "../../types";
+import { BasketItemRemoveEvent, IOnClickEvent, ViewStates } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { IBaseCardData, ICardBasketData, ICardData, ICardPreviewData, ICategory } from "../../types/view/card";
 import { formatCurrency } from "../../utils";
@@ -64,17 +64,36 @@ export class CardView extends BaseCardView<ICardData> {
 }
 
 export class CardPreviewView extends BaseCardView<ICardPreviewData> {
+    protected _category: HTMLElement;
+    protected _image: HTMLImageElement;
     protected _description: HTMLElement;
     protected _buttonBuy: HTMLButtonElement;
 
     constructor(container: HTMLElement, actions?: IOnClickEvent) {
         super(container);
 
+        this._category = ensureElement<HTMLElement>(".card__category", container);
+        this._image = ensureElement<HTMLImageElement>(".card__image", container);
         this._description = ensureElement<HTMLElement>(".card__text", container);
         this._buttonBuy = ensureElement<HTMLButtonElement>(".card__button", container);
 
         if (actions?.onClick)
             this._buttonBuy.addEventListener("click", actions.onClick);
+    }
+
+    set category(item: ICategory) {
+        this.setText(this._category, item.name);
+
+        const classList = this._category.classList;
+        classList.forEach(cls => {
+            if (cls.startsWith("card__category_")) classList.remove(cls);
+        });
+
+        classList.add(`card__category_${item.colorClass}`);
+    }
+
+    set image(value: string) {
+        this.setImage(this._image, value, this.title)
     }
 
     set description(value: string) {
@@ -105,7 +124,7 @@ export class CardBasketView extends BaseCardView<ICardBasketData> {
 
         this._removeButton.addEventListener("click", () => {
             if (!this._id) return;
-            events.emit(ViewStates.basketItemRemove, { id: this._id })
+            events.emit<BasketItemRemoveEvent>(ViewStates.basketItemRemove, { productId: this._id })
         });
     }
 
