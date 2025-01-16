@@ -1,5 +1,6 @@
 import { OrderForm } from "../view/order";
 
+// todo payment: "online" | "cash"
 export interface IOrderData {
     payment: string;
     address: string;

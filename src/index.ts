@@ -168,7 +168,10 @@ events.on(ViewStates.orderContactsSubmit, () => {
     if (!orderModel.validateOrder()) return;
 
     const order: IOrder = {
-        ...orderModel.order,
+        payment: orderModel.order.payment,
+        address: orderModel.order.address,
+        email: orderModel.order.email,
+        phone: orderModel.order.phone,
         total: basketModel.totalPrice,
         items: basketModel.productIds
     }

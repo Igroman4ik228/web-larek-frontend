@@ -12,6 +12,7 @@ export interface IProduct {
     price: number | null;
 }
 
+// todo payment: "online" | "cash"
 export interface IOrder {
     payment: string;
     address: string;
