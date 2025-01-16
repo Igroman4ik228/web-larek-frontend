@@ -21,7 +21,7 @@ export interface ICardData extends IBaseCardData {
     image: string;
 }
 
-export interface ICardPreviewData extends ICardData {
+export interface ICardPreviewData extends IBaseCardData {
     category: ICategory;
     image: string;
     description: string;

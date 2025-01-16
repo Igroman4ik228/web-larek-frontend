@@ -1,6 +1,6 @@
 export type ApiListResponse<Type> = {
-    total: number,
-    items: Type[]
+    total: number;
+    items: Type[];
 }
 
 export interface IProduct {
@@ -12,7 +12,6 @@ export interface IProduct {
     price: number | null;
 }
 
-// todo payment: "online" | "cash"
 export interface IOrder {
     payment: string;
     address: string;
