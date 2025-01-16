@@ -38,15 +38,12 @@ export class BasketModel implements IBasketModel {
 
     add(productId: string) {
         this._productIds.add(productId);
-        this.persistState();
         this.events.emit(ModelStates.basketChange);
     }
 
     remove(productId: string) {
-        if (this._productIds.delete(productId)) {
-            this.persistState();
+        if (this._productIds.delete(productId))
             this.events.emit(ModelStates.basketChange);
-        }
     }
 
     has(productId: string) {
@@ -59,7 +56,6 @@ export class BasketModel implements IBasketModel {
 
     clear() {
         this._productIds.clear();
-        this.persistState();
         this.events.emit(ModelStates.basketChange);
     }
 
@@ -87,9 +83,14 @@ export class BasketModel implements IBasketModel {
         if (value.productIds.length === 0)
             return false;
 
-        // Проверка на существование товаров
+        // Проверка на существование товаров и валидность цен
         try {
-            value.productIds.every(id => this.catalogModel.getProduct(id));
+            value.productIds.every(id => {
+                const product = this.catalogModel.getProduct(id)
+                if (product.price === null)
+                    throw new Error(`Product ${id} with null price cannot be in basket`);
+                return true
+            });
         }
         catch {
             this.localStorage.set(JSON.stringify([]));

@@ -4,8 +4,8 @@ import { CatalogModel } from "./components/models/catalog";
 import { LarekApi } from "./components/models/larekApi";
 import { LocalStorageModel } from "./components/models/localStorage";
 import { OrderModel } from "./components/models/order";
-import { BasketItemView, BasketView } from "./components/view/basket";
-import { CardPreviewView, CardView } from "./components/view/card";
+import { BasketView } from "./components/view/basket";
+import { CardBasketView, CardPreviewView, CardView } from "./components/view/card";
 import { ModalView } from "./components/view/modal";
 import { OrderContactView, OrderPaymentView } from "./components/view/order";
 import { PageView } from "./components/view/page";
@@ -14,7 +14,7 @@ import "./scss/styles.scss";
 import { ModalStates, ModelStates, ViewStates } from "./types";
 import { IProduct } from "./types/model/larekApi";
 import { CategoryColor } from "./types/view/card";
-import { IOrderForm, PaymentMethod } from "./types/view/order";
+import { OrderForm, PaymentMethod } from "./types/view/order";
 import { API_URL, CDN_URL } from "./utils/constants";
 import { cloneTemplate, ensureElement } from "./utils/html";
 import { Templates } from "./utils/template";
@@ -33,19 +33,16 @@ events.onAll(({ eventName, data }) => {
 /**
  * Модели
  */
-const catalogModel = new CatalogModel(events, larekApi);
 const localStorageModel = new LocalStorageModel();
+const catalogModel = new CatalogModel(events, larekApi);
 const basketModel = new BasketModel(events, catalogModel, localStorageModel);
 const orderModel = new OrderModel(events, larekApi, basketModel);
 
 /**
  * Отображения
  */
-// Глобальные компоненты
 const modalView = new ModalView(Templates.modal, events)
 const pageView = new PageView(document.body, events)
-
-// Переисполняемые компоненты
 const basketView = new BasketView(
     ensureElement<HTMLElement>(".basket"),
     {
@@ -56,14 +53,7 @@ const basketView = new BasketView(
         }
     }
 )
-const orderPaymentView = new OrderPaymentView(
-    cloneTemplate(Templates.orderPayment),
-    events,
-    {
-        onClickCash: () => events.emit(ViewStates.orderPaymentChange, { field: "payment", value: "cash" }),
-        onClickOnline: () => events.emit(ViewStates.orderPaymentChange, { field: "payment", value: "online" })
-    }
-)
+const orderPaymentView = new OrderPaymentView(cloneTemplate(Templates.orderPayment), events)
 const orderContactView = new OrderContactView(cloneTemplate(Templates.orderContacts), events)
 const successView = new SuccessView(
     cloneTemplate(Templates.success),
@@ -80,6 +70,7 @@ events.on(ModelStates.catalogChange, () => {
 
 // Изменилось состояние корзина
 events.on(ModelStates.basketChange, () => {
+    basketModel.persistState();
     renderBasket(basketModel.productIds);
     pageView.counter = basketModel.productIds.length;
 })
@@ -143,8 +134,6 @@ events.on(ViewStates.basketOpen, () => {
 // Открытие формы оплаты
 events.on(ViewStates.basketSubmit, () => {
     const { payment, address } = orderModel.formErrors;
-
-    console.log(payment, address);
     modalView.render({
         content: orderPaymentView.render({
             valid: orderModel.validateOrder(["payment", "address"]),
@@ -154,30 +143,37 @@ events.on(ViewStates.basketSubmit, () => {
 })
 
 // Изменение полей формы оплаты
-events.on(/^view:order\..*-change/, (event: { field: keyof IOrderForm, value: string }) => {
+events.on(/^view:order\..*-change/, (event: { field: keyof OrderForm, value: string }) => {
     orderModel.setOrderField(event.field, event.value);
 })
 
 // Открытие формы контактов
 events.on(ViewStates.orderPaymentSubmit, () => {
-    const { email, phone } = orderModel.formErrors;
+    // Дополнительная проверка, так как на кнопку можно нажать, если в коде элемента убрать disabled
+    if (!orderModel.validateOrder(["payment", "address"])) return;
 
+    const { email, phone } = orderModel.formErrors;
     modalView.render({
         content: orderContactView.render({
             valid: orderModel.validateOrder(["email", "phone"]),
             errors: [email, phone].filter(Boolean).join("; ")
         })
     })
+
 })
 
 // Изменение полей формы контактов
-events.on(/^view:contacts\..*-change/, (event: { field: keyof IOrderForm, value: string }) => {
+events.on(/^view:contacts\..*-change/, (event: { field: keyof OrderForm, value: string }) => {
     orderModel.setOrderField(event.field, event.value);
 })
 
 // Создание заказа
 events.on(ViewStates.orderContactsSubmit, () => {
-    orderModel.createOrder()
+    // Дополнительная проверка, так как на кнопку можно нажать, если в коде элемента убрать disabled
+    if (!orderModel.validateOrder()) return;
+
+    orderModel.prepareOrder();
+    orderModel.createOrder();
 })
 
 // Блокируем/разблокируем прокрутку страницы если открыта/закрыта модалка
@@ -193,6 +189,7 @@ catalogModel.loadProductList()
     .then(() => {
         // Загружаем состояние корзины
         basketModel.restoreState();
+        basketModel.remove(undefined as unknown as string);
     })
 
 
@@ -227,7 +224,7 @@ function renderCardPreview(item: IProduct): HTMLElement {
                 else
                     events.emit(ViewStates.cardOrder, { id: item.id })
 
-                // Обновление данных после события
+                // Обновление карточки после события
                 cardPreviewView.hasInBasket = basketModel.has(item.id)
             }
         }
@@ -247,14 +244,14 @@ function renderCardPreview(item: IProduct): HTMLElement {
 }
 
 function renderBasketItem(id: string): HTMLElement {
-    const basketItemView = new BasketItemView(
+    const cardBasketView = new CardBasketView(
         cloneTemplate(Templates.basketItem),
         events
     );
 
     const product = catalogModel.getProduct(id);
 
-    return basketItemView.render({
+    return cardBasketView.render({
         index: basketModel.getIndex(id),
         id: product.id,
         title: product.title,
@@ -269,3 +266,4 @@ function renderBasket(ids: string[]): HTMLElement {
         valid: basketModel.isValid
     })
 }
+

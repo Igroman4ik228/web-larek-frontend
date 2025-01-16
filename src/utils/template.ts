@@ -1,6 +1,8 @@
 import { ensureElement } from "./html";
 
-// Все шаблоны
+/**
+ * Все шаблоны
+ */
 export const Templates = {
     modal: ensureElement<HTMLTemplateElement>("#modal-container"),
     catalog: ensureElement<HTMLTemplateElement>("#card-catalog"),

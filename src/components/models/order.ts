@@ -2,9 +2,11 @@ import { ModelStates } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { IBasketModel } from "../../types/model/basket";
 import { ILarekApi, IOrder } from "../../types/model/larekApi";
-import { FormErrors, IOrderModel } from "../../types/model/order";
-import { ErrorMessages, IOrderForm } from "../../types/view/order";
-
+import { ErrorMessages, FormErrors, IOrderModel } from "../../types/model/order";
+import { OrderForm } from "../../types/view/order";
+/**
+ * Модель заказа
+ */
 export class OrderModel implements IOrderModel {
     protected _order: IOrder = {
         payment: "",
@@ -17,7 +19,7 @@ export class OrderModel implements IOrderModel {
 
     protected _formErrors: FormErrors = {};
 
-    protected readonly VALIDATIONS: { [key in keyof IOrderForm]: string } = {
+    protected readonly VALIDATIONS: { [key in keyof OrderForm]: string } = {
         payment: ErrorMessages.Payment,
         address: ErrorMessages.Address,
         email: ErrorMessages.Email,
@@ -38,7 +40,7 @@ export class OrderModel implements IOrderModel {
         return this._formErrors;
     }
 
-    setOrderField(field: keyof IOrderForm, value: string) {
+    setOrderField(field: keyof OrderForm, value: string) {
         this._order[field] = value;
 
         if (field === "payment")
@@ -48,8 +50,8 @@ export class OrderModel implements IOrderModel {
     }
 
     validateOrder(
-        fields: (keyof IOrderForm)[] =
-            Object.keys(this.VALIDATIONS) as (keyof IOrderForm)[]
+        fields: (keyof OrderForm)[] =
+            Object.keys(this.VALIDATIONS) as (keyof OrderForm)[]
     ): boolean {
         const errors: FormErrors = {};
 
@@ -65,12 +67,12 @@ export class OrderModel implements IOrderModel {
         return Object.keys(errors).length === 0;
     }
 
+    prepareOrder(): void {
+        this._order.items = this.basketModel.productIds;
+        this._order.total = this.basketModel.totalPrice;
+    }
+
     async createOrder(): Promise<void> {
-        if (!this.validateOrder())
-            throw new Error("Данные заказа не корректны");
-
-        this.prepareOrder();
-
         await this.larekApi.createOrder(this._order)
             .then(result => {
                 // Очистка корзины
@@ -79,10 +81,5 @@ export class OrderModel implements IOrderModel {
                 this.events.emit(ModelStates.successOpen, { total: result.total });
             })
             .catch(err => console.error(err));
-    }
-
-    protected prepareOrder(): void {
-        this._order.items = this.basketModel.productIds;
-        this._order.total = this.basketModel.totalPrice;
     }
 }

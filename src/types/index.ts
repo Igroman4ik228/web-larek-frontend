@@ -1,3 +1,5 @@
+import { IProduct } from "./model/larekApi";
+
 export interface IOnClickEvent {
     onClick: (event: MouseEvent) => void;
 }
@@ -25,3 +27,8 @@ export enum ModelStates {
     formErrorChange = "model:form-error-change",
     successOpen = "model:success-open",
 }
+
+
+export type CatalogChangeEvent = {
+    catalog: IProduct[]
+};

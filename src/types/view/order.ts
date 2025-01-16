@@ -10,16 +10,4 @@ export interface IOrderContactData {
     phone: string;
 }
 
-export type IOrderForm = IOrderPaymentData & IOrderContactData;
-
-export interface IOrderPaymentEvents {
-    onClickCash: () => void;
-    onClickOnline: () => void;
-}
-
-export enum ErrorMessages {
-    Payment = "Необходимо выбрать способ оплаты",
-    Address = "Необходимо указать адрес",
-    Email = "Необходимо указать email",
-    Phone = "Необходимо указать телефон"
-}
+export type OrderForm = IOrderPaymentData & IOrderContactData;

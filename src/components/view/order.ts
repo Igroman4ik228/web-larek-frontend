@@ -1,5 +1,6 @@
+import { ViewStates } from "../../types";
 import { IEvents } from "../../types/base/events";
-import { IOrderContactData, IOrderPaymentData, IOrderPaymentEvents, PaymentMethod } from "../../types/view/order";
+import { IOrderContactData, IOrderPaymentData, PaymentMethod } from "../../types/view/order";
 import { ensureElement } from "../../utils/html";
 import { FormView } from "./form";
 
@@ -8,23 +9,22 @@ export class OrderPaymentView extends FormView<IOrderPaymentData> {
     protected _cash: HTMLButtonElement;
     protected _address: HTMLInputElement;
 
-    constructor(protected readonly container: HTMLFormElement, events: IEvents, actions: IOrderPaymentEvents) {
+    constructor(protected readonly container: HTMLFormElement, events: IEvents) {
         super(container, events);
 
         this._online = ensureElement<HTMLButtonElement>("button[name=card]", this.container);
         this._cash = ensureElement<HTMLButtonElement>("button[name=cash]", this.container);
         this._address = ensureElement<HTMLInputElement>("input[name=address]", this.container);
 
-        if (actions.onClickOnline) {
-            this._online.addEventListener("click", actions.onClickOnline);
-        }
-
-        if (actions.onClickCash) {
-            this._cash.addEventListener("click", actions.onClickCash);
-        }
+        this._online.addEventListener("click", () =>
+            events.emit(ViewStates.orderPaymentChange, { field: "payment", value: "online" })
+        );
+        this._cash.addEventListener("click", () =>
+            events.emit(ViewStates.orderPaymentChange, { field: "payment", value: "cash" })
+        );
     }
 
-    set payment(value: PaymentMethod | "") {
+    set payment(value: PaymentMethod) {
         switch (value) {
             case "cash":
                 this._cash.classList.add("button_alt-active");
@@ -32,10 +32,6 @@ export class OrderPaymentView extends FormView<IOrderPaymentData> {
                 break;
             case "online":
                 this._online.classList.add("button_alt-active");
-                this._cash.classList.remove("button_alt-active");
-                break;
-            case "":
-                this._online.classList.remove("button_alt-active");
                 this._cash.classList.remove("button_alt-active");
                 break;
         }
