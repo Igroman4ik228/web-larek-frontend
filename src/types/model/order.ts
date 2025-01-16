@@ -1,13 +1,20 @@
 import { OrderForm } from "../view/order";
-import { IOrder } from "./larekApi";
+
+export interface IOrderData {
+    payment: string;
+    address: string;
+    email: string;
+    phone: string;
+}
 
 export interface IOrderModel {
-    readonly order: IOrder;
+    readonly order: IOrderData;
     readonly formErrors: FormErrors;
     setOrderField(field: keyof OrderForm, value: string): void;
     validateOrder(fields?: (keyof OrderForm)[]): boolean;
-    createOrder: () => Promise<void>;
 }
+
+
 
 export type FormErrors = Partial<Record<keyof OrderForm, string>>;
 

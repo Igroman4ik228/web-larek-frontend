@@ -1,5 +1,6 @@
 import { PersistedState } from "./localStorage";
 
+
 export interface IBasketModel {
     readonly productIds: string[];
     readonly totalPrice: number;

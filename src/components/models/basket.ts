@@ -2,7 +2,8 @@ import { ModelStates } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { IBasketModel } from "../../types/model/basket";
 import { ICatalogModel } from "../../types/model/catalog";
-import { ILocalStorageModel, PersistedState } from "../../types/model/localStorage";
+import { PersistedState } from "../../types/model/localStorage";
+import { getState, setState } from "../../utils/localStorage";
 
 /**
  * Модель для корзины
@@ -13,8 +14,7 @@ export class BasketModel implements IBasketModel {
 
     constructor(
         protected readonly events: IEvents,
-        protected readonly catalogModel: ICatalogModel,
-        protected readonly localStorage: ILocalStorageModel
+        protected readonly catalogModel: ICatalogModel
     ) { }
 
     get productIds() { return Array.from(this._productIds); }
@@ -63,11 +63,12 @@ export class BasketModel implements IBasketModel {
         const state: PersistedState = {
             productIds: Array.from(this._productIds)
         }
-        this.localStorage.set(JSON.stringify(state));
+        setState(JSON.stringify(state));
     }
 
     restoreState() {
-        const state = this.localStorage.get();
+        const state = getState();
+
         if (!state) return;
         const data = JSON.parse(state) as PersistedState;
 
@@ -93,7 +94,7 @@ export class BasketModel implements IBasketModel {
             });
         }
         catch {
-            this.localStorage.set(JSON.stringify([]));
+            setState(JSON.stringify([]));
             return false;
         }
 

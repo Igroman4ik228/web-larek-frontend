@@ -1,20 +1,17 @@
-import { ModelStates, SuccessOpenEvent } from "../../types";
+import { ModelStates } from "../../types";
 import { IEvents } from "../../types/base/events";
-import { IBasketModel } from "../../types/model/basket";
-import { ILarekApi, IOrder } from "../../types/model/larekApi";
-import { ErrorMessages, FormErrors, IOrderModel } from "../../types/model/order";
+import { ErrorMessages, FormErrors, IOrderData, IOrderModel } from "../../types/model/order";
 import { OrderForm } from "../../types/view/order";
+
 /**
  * Модель заказа
  */
 export class OrderModel implements IOrderModel {
-    protected _order: IOrder = {
+    protected _order: IOrderData = {
         payment: "",
         address: "",
         email: "",
-        phone: "",
-        total: 0,
-        items: []
+        phone: ""
     };
 
     protected _formErrors: FormErrors = {};
@@ -26,13 +23,9 @@ export class OrderModel implements IOrderModel {
         phone: ErrorMessages.Phone
     };
 
-    constructor(
-        protected readonly events: IEvents,
-        protected readonly larekApi: ILarekApi,
-        protected readonly basketModel: IBasketModel
-    ) { }
+    constructor(protected readonly events: IEvents) { }
 
-    get order(): IOrder {
+    get order(): IOrderData {
         return this._order;
     }
 
@@ -65,21 +58,5 @@ export class OrderModel implements IOrderModel {
         this._formErrors = errors;
         this.events.emit(ModelStates.formErrorChange);
         return Object.keys(errors).length === 0;
-    }
-
-    prepareOrder(): void {
-        this._order.items = this.basketModel.productIds;
-        this._order.total = this.basketModel.totalPrice;
-    }
-
-    async createOrder(): Promise<void> {
-        await this.larekApi.createOrder(this._order)
-            .then(result => {
-                // Очистка корзины
-                this.basketModel.clear();
-
-                this.events.emit<SuccessOpenEvent>(ModelStates.successOpen, { totalPrice: result.total });
-            })
-            .catch(err => console.error(err));
     }
 }

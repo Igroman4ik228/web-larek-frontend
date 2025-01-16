@@ -2,7 +2,6 @@ import { EventEmitter } from "./components/base/events";
 import { BasketModel } from "./components/models/basket";
 import { CatalogModel } from "./components/models/catalog";
 import { LarekApi } from "./components/models/larekApi";
-import { LocalStorageModel } from "./components/models/localStorage";
 import { OrderModel } from "./components/models/order";
 import { BasketView } from "./components/view/basket";
 import { CardBasketView, CardPreviewView, CardView } from "./components/view/card";
@@ -12,7 +11,7 @@ import { PageView } from "./components/view/page";
 import { SuccessView } from "./components/view/success";
 import "./scss/styles.scss";
 import { BasketItemRemoveEvent, CardOrderEvent, CardSelectEvent, FormFieldChangeEvent, ModalStates, ModelStates, SuccessOpenEvent, ViewStates } from "./types";
-import { IProduct } from "./types/model/larekApi";
+import { IOrder, IProduct } from "./types/model/larekApi";
 import { CategoryColor } from "./types/view/card";
 import { PaymentMethod } from "./types/view/order";
 import { API_URL, CDN_URL } from "./utils/constants";
@@ -33,10 +32,9 @@ events.onAll(({ eventName, data }) => {
 /**
  * Модели
  */
-const localStorageModel = new LocalStorageModel();
-const catalogModel = new CatalogModel(events, larekApi);
-const basketModel = new BasketModel(events, catalogModel, localStorageModel);
-const orderModel = new OrderModel(events, larekApi, basketModel);
+const catalogModel = new CatalogModel(events);
+const basketModel = new BasketModel(events, catalogModel);
+const orderModel = new OrderModel(events);
 
 /**
  * Отображения
@@ -47,7 +45,7 @@ const basketView = new BasketView(
     ensureElement<HTMLElement>(".basket"),
     {
         onClick: () => {
-            // Валидация корзины
+            // Валидация корзины, чтобы нельзя было заказать пустую
             if (basketModel.isValid)
                 events.emit(ViewStates.basketSubmit);
         }
@@ -171,8 +169,20 @@ events.on(ViewStates.orderContactsSubmit, () => {
     // Дополнительная проверка, так как на кнопку можно нажать, если в коде элемента убрать disabled
     if (!orderModel.validateOrder()) return;
 
-    orderModel.prepareOrder();
-    orderModel.createOrder();
+    const order: IOrder = {
+        ...orderModel.order,
+        total: basketModel.totalPrice,
+        items: basketModel.productIds
+    }
+
+    larekApi.createOrder(order)
+        .then(result => {
+            // Очистка корзины
+            basketModel.clear();
+
+            events.emit<SuccessOpenEvent>(ModelStates.successOpen, { totalPrice: result.total });
+        })
+        .catch(err => console.error(err));
 })
 
 // Блокируем/разблокируем прокрутку страницы если открыта/закрыта модалка
@@ -183,12 +193,14 @@ events.on(ModalStates.close, () => {
     pageView.locked = false;
 })
 
-// Загружаем список товаров
-catalogModel.loadProductList()
-    .then(() => {
+larekApi.getProductList()
+    .then(products => {
+        catalogModel.products = products;
+
         // Загружаем состояние корзины
         basketModel.restoreState();
     })
+    .catch(err => console.error(err));
 
 
 function renderCard(item: IProduct): HTMLElement {
