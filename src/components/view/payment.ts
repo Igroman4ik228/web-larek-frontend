@@ -1,10 +1,10 @@
 import { ViewStates } from "../../types";
 import { IEvents } from "../../types/base/events";
-import { IOrderContactData, IOrderPaymentData, PaymentMethod } from "../../types/view/order";
+import { IPaymentData, PaymentMethod } from "../../types/view/payment";
 import { ensureElement } from "../../utils/html";
-import { FormView } from "./form";
+import { FormView } from "./common/form";
 
-export class OrderPaymentView extends FormView<IOrderPaymentData> {
+export class PaymentView extends FormView<IPaymentData> {
     protected _online: HTMLButtonElement;
     protected _cash: HTMLButtonElement;
     protected _address: HTMLInputElement;
@@ -39,25 +39,5 @@ export class OrderPaymentView extends FormView<IOrderPaymentData> {
 
     set address(value: string) {
         this._address.value = value;
-    }
-}
-
-export class OrderContactView extends FormView<IOrderContactData> {
-    protected _email: HTMLButtonElement;
-    protected _phone: HTMLInputElement;
-
-    constructor(protected readonly container: HTMLFormElement, events: IEvents) {
-        super(container, events);
-
-        this._email = ensureElement<HTMLButtonElement>("input[name=email]", this.container);
-        this._phone = ensureElement<HTMLInputElement>("input[name=phone]", this.container);
-    }
-
-    set email(value: string) {
-        this._email.value = value;
-    }
-
-    set phone(value: string) {
-        this._phone.value = value;
     }
 }

@@ -1,19 +1,19 @@
-import { OrderForm } from "../view/order";
+import { UserForm } from "..";
 
-export interface IOrderData {
+export interface IUserData {
     payment: string;
     address: string;
     email: string;
     phone: string;
 }
 
-export type FormErrors = Partial<Record<keyof OrderForm, string>>;
+export type FormErrors = Partial<Record<keyof UserForm, string>>;
 
-export interface IOrderModel {
-    readonly order: IOrderData;
+export interface IUserModel {
+    readonly order: IUserData;
     readonly formErrors: FormErrors;
-    setOrderField(field: keyof OrderForm, value: string): void;
-    validateOrder(fields?: (keyof OrderForm)[]): boolean;
+    setUserField(field: keyof UserForm, value: string): void;
+    validateUserFields(fields?: (keyof UserForm)[]): boolean;
 }
 
 export enum ErrorMessages {

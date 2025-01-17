@@ -1,4 +1,5 @@
-import { OrderForm } from "./view/order";
+import { IContactData } from "./view/contacts";
+import { IPaymentData } from "./view/payment";
 
 export interface IOnClickEvent {
     onClick: (event: MouseEvent) => void;
@@ -30,21 +31,23 @@ export enum ModelStates {
 
 export type SuccessOpenEvent = {
     totalPrice: number;
-};
+}
 
 export type BasketItemRemoveEvent = {
     productId: string;
-};
+}
 
 export type CardSelectEvent = {
     productId: string;
-};
+}
 
 export type CardOrderEvent = {
     productId: string;
-};
+}
 
 export type FormFieldChangeEvent = {
-    field: keyof OrderForm;
+    field: keyof UserForm;
     value: string;
-};
+}
+
+export type UserForm = IPaymentData & IContactData;

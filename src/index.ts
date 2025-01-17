@@ -2,18 +2,21 @@ import { EventEmitter } from "./components/base/events";
 import { BasketModel } from "./components/models/basket";
 import { CatalogModel } from "./components/models/catalog";
 import { LarekApi } from "./components/models/larekApi";
-import { OrderModel } from "./components/models/order";
+import { UserDataModel } from "./components/models/user";
 import { BasketView } from "./components/view/basket";
-import { CardBasketView, CardPreviewView, CardView } from "./components/view/card";
-import { ModalView } from "./components/view/modal";
-import { OrderContactView, OrderPaymentView } from "./components/view/order";
+import { CardBasketView } from "./components/view/cards/basket";
+import { CardView } from "./components/view/cards/card";
+import { CardPreviewView } from "./components/view/cards/preview";
+import { ModalView } from "./components/view/common/modal";
+import { ContactView } from "./components/view/contacts";
 import { PageView } from "./components/view/page";
+import { PaymentView } from "./components/view/payment";
 import { SuccessView } from "./components/view/success";
 import "./scss/styles.scss";
 import { BasketItemRemoveEvent, CardOrderEvent, CardSelectEvent, FormFieldChangeEvent, ModalStates, ModelStates, SuccessOpenEvent, ViewStates } from "./types";
 import { IOrder, IProduct } from "./types/model/larekApi";
-import { CategoryColor } from "./types/view/card";
-import { PaymentMethod } from "./types/view/order";
+import { CategoryColor } from "./types/view/cards/card";
+import { PaymentMethod } from "./types/view/payment";
 import { API_URL, CDN_URL, TEMPLATES } from "./utils/constants";
 import { cloneTemplate, ensureElement } from "./utils/html";
 
@@ -33,7 +36,7 @@ const events = new EventEmitter();
  */
 const catalogModel = new CatalogModel(events);
 const basketModel = new BasketModel(events, catalogModel);
-const orderModel = new OrderModel(events);
+const orderModel = new UserDataModel(events);
 
 /**
  * Отображения
@@ -50,8 +53,8 @@ const basketView = new BasketView(
         }
     }
 )
-const orderPaymentView = new OrderPaymentView(cloneTemplate(TEMPLATES.orderPayment), events)
-const orderContactView = new OrderContactView(cloneTemplate(TEMPLATES.orderContacts), events)
+const orderPaymentView = new PaymentView(cloneTemplate(TEMPLATES.orderPayment), events)
+const orderContactView = new ContactView(cloneTemplate(TEMPLATES.orderContacts), events)
 const successView = new SuccessView(
     cloneTemplate(TEMPLATES.success),
     { onClick: () => modalView.close() }
@@ -132,7 +135,7 @@ events.on(ViewStates.basketSubmit, () => {
     const { payment, address } = orderModel.formErrors;
     modalView.render({
         content: orderPaymentView.render({
-            valid: orderModel.validateOrder(["payment", "address"]),
+            valid: orderModel.validateUserFields(["payment", "address"]),
             errors: [payment, address].filter(Boolean).join("; ")
         })
     })
@@ -140,18 +143,18 @@ events.on(ViewStates.basketSubmit, () => {
 
 // Изменение полей формы оплаты
 events.on<FormFieldChangeEvent>(/^view:order\..*-change/, (event: FormFieldChangeEvent) => {
-    orderModel.setOrderField(event.field, event.value);
+    orderModel.setUserField(event.field, event.value);
 })
 
 // Открытие формы контактов
 events.on(ViewStates.orderPaymentSubmit, () => {
     // Дополнительная проверка, так как на кнопку можно нажать, если в коде элемента убрать disabled
-    if (!orderModel.validateOrder(["payment", "address"])) return;
+    if (!orderModel.validateUserFields(["payment", "address"])) return;
 
     const { email, phone } = orderModel.formErrors;
     modalView.render({
         content: orderContactView.render({
-            valid: orderModel.validateOrder(["email", "phone"]),
+            valid: orderModel.validateUserFields(["email", "phone"]),
             errors: [email, phone].filter(Boolean).join("; ")
         })
     })
@@ -159,13 +162,13 @@ events.on(ViewStates.orderPaymentSubmit, () => {
 
 // Изменение полей формы контактов
 events.on<FormFieldChangeEvent>(/^view:contacts\..*-change/, (event: FormFieldChangeEvent) => {
-    orderModel.setOrderField(event.field, event.value);
+    orderModel.setUserField(event.field, event.value);
 })
 
 // Создание заказа
 events.on(ViewStates.orderContactsSubmit, () => {
     // Дополнительная проверка, так как на кнопку можно нажать, если в коде элемента убрать disabled
-    if (!orderModel.validateOrder()) return;
+    if (!orderModel.validateUserFields()) return;
 
     const order: IOrder = {
         payment: orderModel.order.payment,

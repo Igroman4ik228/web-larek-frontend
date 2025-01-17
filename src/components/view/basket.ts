@@ -9,7 +9,7 @@ export class BasketView extends Component<IBasketData> {
     protected _totalPrice: HTMLElement;
     protected _submit: HTMLButtonElement;
 
-    constructor(container: HTMLElement, actions: IOnClickEvent) {
+    constructor(container: HTMLElement, actions?: IOnClickEvent) {
         super(container);
 
         this._containerForItems = ensureElement<HTMLElement>(".basket__list", container);
@@ -17,9 +17,8 @@ export class BasketView extends Component<IBasketData> {
         this._submit = ensureElement<HTMLButtonElement>(".button", container);
 
 
-        if (actions.onClick) {
+        if (actions?.onClick)
             this._submit.addEventListener("click", actions.onClick);
-        }
     }
 
     set items(value: HTMLElement[]) {

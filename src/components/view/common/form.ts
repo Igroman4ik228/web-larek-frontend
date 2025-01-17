@@ -1,7 +1,7 @@
-import { IEvents } from "../../types/base/events";
-import { IFormState } from "../../types/view/form";
-import { ensureElement } from "../../utils/html";
-import { Component } from "../base/component";
+import { IEvents } from "../../../types/base/events";
+import { IFormState } from "../../../types/view/common/form";
+import { ensureElement } from "../../../utils/html";
+import { Component } from "../../base/component";
 
 export class FormView<T> extends Component<IFormState> {
     protected _submit: HTMLButtonElement;

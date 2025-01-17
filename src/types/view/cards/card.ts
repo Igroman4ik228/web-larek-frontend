@@ -1,7 +1,4 @@
-export interface IBaseCardData {
-    title: string;
-    price: number | null;
-}
+import { IBaseCardData } from "./base";
 
 export enum CategoryColor {
     "софт-скил" = "soft",
@@ -19,16 +16,4 @@ export interface ICategory {
 export interface ICardData extends IBaseCardData {
     category: ICategory;
     image: string;
-}
-
-export interface ICardPreviewData extends IBaseCardData {
-    category: ICategory;
-    image: string;
-    description: string;
-    hasInBasket: boolean;
-}
-
-export interface ICardBasketData extends IBaseCardData {
-    index: number;
-    id: string;
 }

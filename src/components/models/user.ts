@@ -1,13 +1,12 @@
-import { ModelStates } from "../../types";
+import { ModelStates, UserForm } from "../../types";
 import { IEvents } from "../../types/base/events";
-import { ErrorMessages, FormErrors, IOrderData, IOrderModel } from "../../types/model/order";
-import { OrderForm } from "../../types/view/order";
+import { ErrorMessages, FormErrors, IUserData, IUserModel } from "../../types/model/user";
 
 /**
- * Модель заказа
+ * Модель для данных пользователя
  */
-export class OrderModel implements IOrderModel {
-    protected _order: IOrderData = {
+export class UserDataModel implements IUserModel {
+    protected _order: IUserData = {
         payment: "",
         address: "",
         email: "",
@@ -16,7 +15,7 @@ export class OrderModel implements IOrderModel {
 
     protected _formErrors: FormErrors = {};
 
-    protected readonly VALIDATIONS: { [key in keyof OrderForm]: string } = {
+    protected readonly VALIDATIONS: { [key in keyof UserForm]: string } = {
         payment: ErrorMessages.Payment,
         address: ErrorMessages.Address,
         email: ErrorMessages.Email,
@@ -25,7 +24,7 @@ export class OrderModel implements IOrderModel {
 
     constructor(protected readonly events: IEvents) { }
 
-    get order(): IOrderData {
+    get order(): IUserData {
         return this._order;
     }
 
@@ -33,18 +32,18 @@ export class OrderModel implements IOrderModel {
         return this._formErrors;
     }
 
-    setOrderField(field: keyof OrderForm, value: string) {
+    setUserField(field: keyof UserForm, value: string) {
         this._order[field] = value;
 
         if (field === "payment")
             this.events.emit(ModelStates.paymentMethodChange);
 
-        this.validateOrder();
+        this.validateUserFields();
     }
 
-    validateOrder(
-        fields: (keyof OrderForm)[] =
-            Object.keys(this.VALIDATIONS) as (keyof OrderForm)[]
+    validateUserFields(
+        fields: (keyof UserForm)[] =
+            Object.keys(this.VALIDATIONS) as (keyof UserForm)[]
     ): boolean {
         const errors: FormErrors = {};
 
