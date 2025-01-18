@@ -13,11 +13,11 @@ export class UserDataModel implements IUserModel {
         phone: ""
     };
 
-    protected readonly VALIDATIONS: { [key in keyof UserDataForm]: string } = {
-        payment: ErrorMessages.Payment,
-        address: ErrorMessages.Address,
-        email: ErrorMessages.Email,
-        phone: ErrorMessages.Phone
+    protected readonly VALIDATIONS: Record<keyof UserDataForm, (value: string) => string | null> = {
+        payment: (value) => !value ? ErrorMessages.Payment : null,
+        address: (value) => !value ? ErrorMessages.Address : null,
+        email: (value) => !value ? ErrorMessages.Email : null,
+        phone: (value) => !value ? ErrorMessages.Phone : null,
     };
 
     constructor(protected readonly events: IEvents) { }
@@ -28,24 +28,18 @@ export class UserDataModel implements IUserModel {
 
     set(field: keyof UserDataForm, value: string) {
         this._userData[field] = value;
-
-        if (field === "payment")
-            this.events.emit(ModelStates.paymentMethodChange);
+        this.events.emit(ModelStates.userDataChange);
     }
 
     validate(
         fields: (keyof UserDataForm)[] =
             Object.keys(this.VALIDATIONS) as (keyof UserDataForm)[]
     ): FormErrors {
-        const errors: FormErrors = {};
-
-        fields.forEach(field => {
-            if (!this._userData[field]) {
-                errors[field] = this.VALIDATIONS[field];
-            }
-            // Сюда можно дописать ещё какие-то проверки и разные сообщения об ошибках
-        })
-
-        return errors
+        return fields.reduce((errors: FormErrors, field) => {
+            const error = this.VALIDATIONS[field](this._userData[field]);
+            if (error)
+                errors[field] = error;
+            return errors;
+        }, {}); // Значение по умолчанию {}
     }
 }

@@ -24,7 +24,7 @@ export enum ViewStates {
 export enum ModelStates {
     catalogChange = "model:catalog-change",
     basketChange = "model:basket-change",
-    paymentMethodChange = "model:order-change",
+    userDataChange = "model:user-data-change",
     formErrorChange = "model:form-error-change",
     successOpen = "model:success-open",
 }

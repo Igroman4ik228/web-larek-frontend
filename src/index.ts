@@ -75,7 +75,7 @@ events.on(ModelStates.basketChange, () => {
 })
 
 // Изменилось состояние метода оплаты
-events.on(ModelStates.paymentMethodChange, () => {
+events.on(ModelStates.userDataChange, () => {
     paymentView.payment = userDataModel.userData.payment as PaymentMethod;
     events.emit(ModelStates.formErrorChange);
 })
@@ -154,7 +154,6 @@ events.on(ViewStates.basketSubmit, () => {
 // Изменение полей формы оплаты
 events.on<FormFieldChangeEvent>(/^view:order\..*-change/, (event: FormFieldChangeEvent) => {
     userDataModel.set(event.field, event.value);
-    events.emit(ModelStates.formErrorChange);
 })
 
 // Открытие формы контактов
@@ -175,7 +174,6 @@ events.on(ViewStates.orderPaymentSubmit, () => {
 // Изменение полей формы контактов
 events.on<FormFieldChangeEvent>(/^view:contacts\..*-change/, (event: FormFieldChangeEvent) => {
     userDataModel.set(event.field, event.value);
-    events.emit(ModelStates.formErrorChange);
 })
 
 // Создание заказа
