@@ -46,8 +46,13 @@ export type CardOrderEvent = {
 }
 
 export type FormFieldChangeEvent = {
-    field: keyof UserForm;
+    field: keyof UserDataForm;
     value: string;
 }
 
-export type UserForm = IPaymentData & IContactData;
+export type UserDataForm = IPaymentData & IContactData;
+
+export type ValidateResult = {
+    isValid: boolean,
+    errors: string[]
+}

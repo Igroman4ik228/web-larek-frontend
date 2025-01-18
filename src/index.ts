@@ -13,7 +13,7 @@ import { PageView } from "./components/view/page";
 import { PaymentView } from "./components/view/payment";
 import { SuccessView } from "./components/view/success";
 import "./scss/styles.scss";
-import { BasketItemRemoveEvent, CardOrderEvent, CardSelectEvent, FormFieldChangeEvent, ModalStates, ModelStates, SuccessOpenEvent, ViewStates } from "./types";
+import { BasketItemRemoveEvent, CardOrderEvent, CardSelectEvent, FormFieldChangeEvent, ModalStates, ModelStates, SuccessOpenEvent, UserDataForm, ValidateResult, ViewStates } from "./types";
 import { IOrder, IProduct } from "./types/model/larekApi";
 import { CategoryColor } from "./types/view/cards/card";
 import { PaymentMethod } from "./types/view/payment";
@@ -27,16 +27,16 @@ const larekApi = new LarekApi(CDN_URL, API_URL);
 const events = new EventEmitter();
 
 // Чтобы мониторить все события, для отладки
-// events.onAll(({ eventName, data }) => {
-//     console.log(eventName, data);
-// })
+events.onAll(({ eventName, data }) => {
+    console.log(eventName, data);
+})
 
 /**
  * Модели
  */
 const catalogModel = new CatalogModel(events);
 const basketModel = new BasketModel(events, catalogModel);
-const orderModel = new UserDataModel(events);
+const userDataModel = new UserDataModel(events);
 
 /**
  * Отображения
@@ -53,8 +53,8 @@ const basketView = new BasketView(
         }
     }
 )
-const orderPaymentView = new PaymentView(cloneTemplate(TEMPLATES.orderPayment), events)
-const orderContactView = new ContactView(cloneTemplate(TEMPLATES.orderContacts), events)
+const paymentView = new PaymentView(cloneTemplate(TEMPLATES.orderPayment), events)
+const contactView = new ContactView(cloneTemplate(TEMPLATES.orderContacts), events)
 const successView = new SuccessView(
     cloneTemplate(TEMPLATES.success),
     { onClick: () => modalView.close() }
@@ -76,22 +76,32 @@ events.on(ModelStates.basketChange, () => {
 
 // Изменилось состояние метода оплаты
 events.on(ModelStates.paymentMethodChange, () => {
-    orderPaymentView.payment = orderModel.order.payment as PaymentMethod;
+    paymentView.payment = userDataModel.userData.payment as PaymentMethod;
+    events.emit(ModelStates.formErrorChange);
 })
 
 // Изменилось состояние валидации формы
 events.on(ModelStates.formErrorChange, () => {
-    const { payment, address, email, phone } = orderModel.formErrors;
+    const paymentValidationResult = validateFields(["payment", "address"]);
+    const contactValidationResult = validateFields(["email", "phone"]);
 
     // Объединяем логику в один блок
-    const views = [
-        { view: orderPaymentView, errors: [payment, address] },
-        { view: orderContactView, errors: [email, phone] }
+    const viewsData = [
+        {
+            view: paymentView,
+            isValid: paymentValidationResult.isValid,
+            errorsData: paymentValidationResult.errors
+        },
+        {
+            view: contactView,
+            isValid: contactValidationResult.isValid,
+            errorsData: contactValidationResult.errors
+        }
     ];
 
-    views.forEach(({ view, errors }) => {
-        view.valid = errors.every(error => !error);
-        view.errors = errors.filter(Boolean).join("; ");
+    viewsData.forEach(({ view, isValid, errorsData }) => {
+        view.valid = isValid;
+        view.errors = errorsData.join("; ");
     });
 })
 
@@ -132,49 +142,54 @@ events.on(ViewStates.basketOpen, () => {
 
 // Открытие формы оплаты
 events.on(ViewStates.basketSubmit, () => {
-    const { payment, address } = orderModel.formErrors;
+    const { isValid, errors } = validateFields(["payment", "address"]);
     modalView.render({
-        content: orderPaymentView.render({
-            valid: orderModel.validateUserFields(["payment", "address"]),
-            errors: [payment, address].filter(Boolean).join("; ")
+        content: paymentView.render({
+            valid: isValid,
+            errors: errors.join("; ")
         })
     })
 })
 
 // Изменение полей формы оплаты
 events.on<FormFieldChangeEvent>(/^view:order\..*-change/, (event: FormFieldChangeEvent) => {
-    orderModel.setUserField(event.field, event.value);
+    userDataModel.set(event.field, event.value);
+    events.emit(ModelStates.formErrorChange);
 })
 
 // Открытие формы контактов
 events.on(ViewStates.orderPaymentSubmit, () => {
     // Дополнительная проверка, так как на кнопку можно нажать, если в коде элемента убрать disabled
-    if (!orderModel.validateUserFields(["payment", "address"])) return;
+    const { isValid } = validateFields(["payment", "address"]);
+    if (!isValid) return;
 
-    const { email, phone } = orderModel.formErrors;
+    const validationResult = validateFields(["email", "phone"]);
     modalView.render({
-        content: orderContactView.render({
-            valid: orderModel.validateUserFields(["email", "phone"]),
-            errors: [email, phone].filter(Boolean).join("; ")
+        content: contactView.render({
+            valid: validationResult.isValid,
+            errors: validationResult.errors.join("; ")
         })
     })
 })
 
 // Изменение полей формы контактов
 events.on<FormFieldChangeEvent>(/^view:contacts\..*-change/, (event: FormFieldChangeEvent) => {
-    orderModel.setUserField(event.field, event.value);
+    userDataModel.set(event.field, event.value);
+    events.emit(ModelStates.formErrorChange);
 })
 
 // Создание заказа
 events.on(ViewStates.orderContactsSubmit, () => {
     // Дополнительная проверка, так как на кнопку можно нажать, если в коде элемента убрать disabled
-    if (!orderModel.validateUserFields()) return;
+    const { isValid } = validateFields()
+    if (!isValid) return;
 
+    // Создание заказа
     const order: IOrder = {
-        payment: orderModel.order.payment,
-        address: orderModel.order.address,
-        email: orderModel.order.email,
-        phone: orderModel.order.phone,
+        payment: userDataModel.userData.payment,
+        address: userDataModel.userData.address,
+        email: userDataModel.userData.email,
+        phone: userDataModel.userData.phone,
         total: basketModel.totalPrice,
         items: basketModel.productIds
     }
@@ -199,8 +214,17 @@ events.on(ModalStates.close, () => {
 
 larekApi.getProductList()
     .then(products => catalogModel.products = products)
-    .catch(err => console.error(err));
+    .catch(err => console.error(err))
 
+
+function validateFields(fields: (keyof UserDataForm)[] = []): ValidateResult {
+    const validationResults = fields.length === 0 ?
+        userDataModel.validate() :
+        userDataModel.validate(fields);
+
+    const errors = Object.values(validationResults).filter(Boolean);
+    return { isValid: errors.length === 0, errors };
+}
 
 function renderCard(item: IProduct): HTMLElement {
     const cardView = new CardView(

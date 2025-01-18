@@ -1,4 +1,4 @@
-import { ModelStates, UserForm } from "../../types";
+import { ModelStates, UserDataForm } from "../../types";
 import { IEvents } from "../../types/base/events";
 import { ErrorMessages, FormErrors, IUserData, IUserModel } from "../../types/model/user";
 
@@ -6,16 +6,14 @@ import { ErrorMessages, FormErrors, IUserData, IUserModel } from "../../types/mo
  * Модель для данных пользователя
  */
 export class UserDataModel implements IUserModel {
-    protected _order: IUserData = {
+    protected _userData: IUserData = {
         payment: "",
         address: "",
         email: "",
         phone: ""
     };
 
-    protected _formErrors: FormErrors = {};
-
-    protected readonly VALIDATIONS: { [key in keyof UserForm]: string } = {
+    protected readonly VALIDATIONS: { [key in keyof UserDataForm]: string } = {
         payment: ErrorMessages.Payment,
         address: ErrorMessages.Address,
         email: ErrorMessages.Email,
@@ -24,38 +22,30 @@ export class UserDataModel implements IUserModel {
 
     constructor(protected readonly events: IEvents) { }
 
-    get order(): IUserData {
-        return this._order;
+    get userData(): IUserData {
+        return this._userData;
     }
 
-    get formErrors(): FormErrors {
-        return this._formErrors;
-    }
-
-    setUserField(field: keyof UserForm, value: string) {
-        this._order[field] = value;
+    set(field: keyof UserDataForm, value: string) {
+        this._userData[field] = value;
 
         if (field === "payment")
             this.events.emit(ModelStates.paymentMethodChange);
-
-        this.validateUserFields();
     }
 
-    validateUserFields(
-        fields: (keyof UserForm)[] =
-            Object.keys(this.VALIDATIONS) as (keyof UserForm)[]
-    ): boolean {
+    validate(
+        fields: (keyof UserDataForm)[] =
+            Object.keys(this.VALIDATIONS) as (keyof UserDataForm)[]
+    ): FormErrors {
         const errors: FormErrors = {};
 
         fields.forEach(field => {
-            if (!this._order[field]) {
+            if (!this._userData[field]) {
                 errors[field] = this.VALIDATIONS[field];
             }
             // Сюда можно дописать ещё какие-то проверки и разные сообщения об ошибках
         })
 
-        this._formErrors = errors;
-        this.events.emit(ModelStates.formErrorChange);
-        return Object.keys(errors).length === 0;
+        return errors
     }
 }

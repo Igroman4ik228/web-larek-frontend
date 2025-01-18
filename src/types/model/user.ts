@@ -1,4 +1,4 @@
-import { UserForm } from "..";
+import { UserDataForm } from "..";
 
 export interface IUserData {
     payment: string;
@@ -7,13 +7,12 @@ export interface IUserData {
     phone: string;
 }
 
-export type FormErrors = Partial<Record<keyof UserForm, string>>;
+export type FormErrors = Partial<Record<keyof UserDataForm, string>>;
 
 export interface IUserModel {
-    readonly order: IUserData;
-    readonly formErrors: FormErrors;
-    setUserField(field: keyof UserForm, value: string): void;
-    validateUserFields(fields?: (keyof UserForm)[]): boolean;
+    readonly userData: IUserData;
+    set(field: keyof UserDataForm, value: string): void;
+    validate(fields?: (keyof UserDataForm)[]): FormErrors;
 }
 
 export enum ErrorMessages {
