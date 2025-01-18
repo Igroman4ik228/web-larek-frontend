@@ -13,6 +13,7 @@ export class UserDataModel implements IUserModel {
         phone: ""
     };
 
+    // Правила валидации
     protected readonly VALIDATIONS: Record<keyof UserDataForm, (value: string) => string | null> = {
         payment: (value) => !value ? ErrorMessages.Payment : null,
         address: (value) => !value ? ErrorMessages.Address : null,
