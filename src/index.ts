@@ -2,7 +2,7 @@ import { EventEmitter } from "./components/base/events";
 import { BasketModel } from "./components/models/basket";
 import { CatalogModel } from "./components/models/catalog";
 import { LarekApi } from "./components/models/larekApi";
-import { UserDataModel } from "./components/models/user";
+import { UserDataModel } from "./components/models/userData";
 import { BasketView } from "./components/view/basket";
 import { CardBasketView } from "./components/view/cards/basket";
 import { CardView } from "./components/view/cards/card";
