@@ -1,6 +1,6 @@
 import { ModelStates, UserDataForm } from "../../types";
 import { IEvents } from "../../types/base/events";
-import { ErrorMessages, FormErrors, IUserData, IUserModel } from "../../types/model/user";
+import { ErrorMessages, FormErrors, IUserData, IUserModel } from "../../types/model/userData";
 
 /**
  * Модель для данных пользователя
