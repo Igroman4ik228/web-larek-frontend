@@ -24,12 +24,16 @@ export class BasketModel implements IBasketModel {
             )
         );
 
-        return Array.from(this._productIds).reduce((total, id) => {
+        let total = 0;
+        for (const id of this._productIds) {
             const price = productMap.get(id);
-
-            if (!price) return total;
-            return total + price;
-        }, 0); // Начальная сумма равна 0
+            if (!price) {
+                console.warn(`Продукт с id ${id} имеет некорректную цену`);
+                continue;
+            }
+            total += price;
+        }
+        return total;
     }
 
     get isValid() { return this.totalPrice > 0; }
