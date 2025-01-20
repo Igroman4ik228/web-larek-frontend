@@ -69,6 +69,9 @@ events.on(ModelStates.catalogChange, () => {
     pageView.catalog = catalogModel.products.map(renderCard);
 })
 
+// При инициализации приложения обновляем начальное состояние корзины
+updateBasketContent();
+
 // Изменилось состояние корзины (добавление/удаление товаров)
 events.on(ModelStates.basketChange, () => {
     updateBasketContent();
@@ -137,11 +140,8 @@ events.on<BasketProductAddEvent>(ViewStates.basketProductAdd, (event: BasketProd
     });
 })
 
-// Открытие корзины
+// Открытие корзины - просто показываем текущее состояние
 events.on(ViewStates.basketOpen, () => {
-    // Инициализируем начальное состояние корзины при первом открытии
-    updateBasketContent();
-
     modalView.render({
         content: basketView.render()
     })
