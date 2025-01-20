@@ -69,12 +69,9 @@ events.on(ModelStates.catalogChange, () => {
     pageView.catalog = catalogModel.products.map(renderCard);
 })
 
-// Изменилось состояние корзина
+// Изменилось состояние корзины (добавление/удаление товаров)
 events.on(ModelStates.basketChange, () => {
-    basketView.items = basketModel.products.map(product => renderCardBasket(product));
-    basketView.totalPrice = basketModel.totalPrice;
-    basketView.valid = basketModel.isValid;
-    pageView.counter = basketModel.products.length;
+    updateBasketContent();
 })
 
 // Изменилось состояние метода оплаты
@@ -142,6 +139,9 @@ events.on<BasketProductAddEvent>(ViewStates.basketProductAdd, (event: BasketProd
 
 // Открытие корзины
 events.on(ViewStates.basketOpen, () => {
+    // Инициализируем начальное состояние корзины при первом открытии
+    updateBasketContent();
+
     modalView.render({
         content: basketView.render()
     })
@@ -282,6 +282,19 @@ function renderCardPreview(item: IProduct): HTMLElement {
         description: item.description,
         hasInBasket: isInBasket
     })
+}
+
+/**
+ * Обновляет содержимое корзины и связанные элементы интерфейса
+ */
+function updateBasketContent() {
+    // Обновляем содержимое корзины
+    basketView.items = basketModel.products.map(product => renderCardBasket(product));
+    basketView.totalPrice = basketModel.totalPrice;
+    basketView.valid = basketModel.isValid;
+
+    // Обновляем счетчик в шапке
+    pageView.counter = basketModel.products.length;
 }
 
 function renderCardBasket(product: IBasketProduct): HTMLElement {
