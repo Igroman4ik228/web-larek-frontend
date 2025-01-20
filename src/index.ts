@@ -289,7 +289,7 @@ function renderCardPreview(item: IProduct): HTMLElement {
  */
 function updateBasketContent() {
     // Обновляем содержимое корзины
-    basketView.items = basketModel.products.map(product => renderCardBasket(product));
+    basketView.items = basketModel.products.map(renderCardBasket);
     basketView.totalPrice = basketModel.totalPrice;
     basketView.valid = basketModel.isValid;
 
