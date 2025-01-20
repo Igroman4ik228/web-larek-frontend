@@ -1,63 +1,53 @@
 import { ModelStates } from "../../types";
 import { IEvents } from "../../types/base/events";
-import { IBasketModel } from "../../types/model/basket";
-import { ICatalogModel } from "../../types/model/catalog";
+import { IBasketModel, IBasketProduct, IBasketProductData } from "../../types/model/basket";
 
 /**
  * Модель для корзины
  */
 export class BasketModel implements IBasketModel {
-    // Set, так как уникальные элементы в корзине
-    protected _productIds: Set<string> = new Set();
+    protected _products: Map<string, IBasketProductData> = new Map();
 
-    constructor(
-        protected readonly events: IEvents,
-        protected readonly catalogModel: ICatalogModel
-    ) { }
+    constructor(protected readonly events: IEvents) { }
 
-    get productIds() { return Array.from(this._productIds); }
-
-    get totalPrice() {
-        const productMap = new Map(
-            this.catalogModel.products.map(
-                product => [product.id, product.price]
-            )
-        );
-
-        let total = 0;
-        for (const id of this._productIds) {
-            const price = productMap.get(id);
-            if (!price) {
-                console.warn(`Продукт с id ${id} имеет некорректную цену`);
-                continue;
-            }
-            total += price;
-        }
-        return total;
+    get products(): IBasketProduct[] {
+        return Array.from(this._products.entries())
+            .map(([id, data]) => ({
+                id,
+                ...data
+            }));
     }
 
-    get isValid() { return this.totalPrice > 0; }
+    get totalPrice(): number {
+        return Array.from(this._products.values())
+            .reduce((sum, product) => sum + (product.price || 0), 0);
+    }
 
-    add(productId: string) {
-        this._productIds.add(productId);
+    get isValid(): boolean {
+        return this.totalPrice > 0;
+    }
+
+    add(product: IBasketProduct) {
+        const { id, ...data } = product;
+        this._products.set(id, data);
         this.events.emit(ModelStates.basketChange);
     }
 
     remove(productId: string) {
-        if (this._productIds.delete(productId))
+        if (this._products.delete(productId))
             this.events.emit(ModelStates.basketChange);
     }
 
-    has(productId: string) {
-        return this._productIds.has(productId);
+    has(productId: string): boolean {
+        return this._products.has(productId);
     }
 
-    getIndex(productId: string) {
-        return Array.from(this._productIds).indexOf(productId);
+    getIndex(productId: string): number {
+        return Array.from(this._products.keys()).indexOf(productId);
     }
 
     clear() {
-        this._productIds.clear();
+        this._products.clear();
         this.events.emit(ModelStates.basketChange);
     }
 }

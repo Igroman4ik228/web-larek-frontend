@@ -1,3 +1,4 @@
+import { IProduct } from "./model/larekApi";
 import { IContactData } from "./view/contacts";
 import { IPaymentData } from "./view/payment";
 
@@ -12,9 +13,9 @@ export enum ModalStates {
 
 export enum ViewStates {
     basketOpen = "view:basket-open",
-    basketItemRemove = "view:basket-item-remove",
+    basketProductRemove = "view:basket-product-remove",
     cardSelect = "view:card-select",
-    cardOrder = "view:card-order",
+    basketProductAdd = "view:basket-product-add",
     basketSubmit = "view:basket-submit",
     orderPaymentSubmit = "view:order-submit",
     orderPaymentChange = "view:order.payment-change",
@@ -33,7 +34,7 @@ export type SuccessOpenEvent = {
     totalPrice: number;
 }
 
-export type BasketItemRemoveEvent = {
+export type BasketProductRemoveEvent = {
     productId: string;
 }
 
@@ -41,8 +42,8 @@ export type CardSelectEvent = {
     productId: string;
 }
 
-export type CardOrderEvent = {
-    productId: string;
+export type BasketProductAddEvent = {
+    product: IProduct;
 }
 
 export type FormFieldChangeEvent = {

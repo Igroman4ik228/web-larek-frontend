@@ -1,4 +1,4 @@
-import { BasketItemRemoveEvent, ViewStates } from "../../../types";
+import { BasketProductRemoveEvent, ViewStates } from "../../../types";
 import { IEvents } from "../../../types/base/events";
 import { ICardBasketData } from "../../../types/view/cards/basket";
 import { ensureElement } from "../../../utils/html";
@@ -18,7 +18,7 @@ export class CardBasketView extends BaseCardView<ICardBasketData> {
 
         this._removeButton.addEventListener("click", () => {
             if (!this._id) return;
-            events.emit<BasketItemRemoveEvent>(ViewStates.basketItemRemove, { productId: this._id })
+            events.emit<BasketProductRemoveEvent>(ViewStates.basketProductRemove, { productId: this._id })
         });
     }
 

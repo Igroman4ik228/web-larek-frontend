@@ -1,10 +1,19 @@
+export interface IBasketProductData {
+    title: string;
+    price: number | null;
+}
+
+export interface IBasketProduct extends IBasketProductData {
+    id: string;
+}
+
 export interface IBasketModel {
-    readonly productIds: string[];
+    readonly products: IBasketProduct[];
     readonly totalPrice: number;
     readonly isValid: boolean;
-    add(id: string): void;
-    remove(id: string): void;
-    has(id: string): boolean;
-    getIndex(id: string): number;
+    add(product: IBasketProduct): void;
+    remove(productId: string): void;
+    has(productId: string): boolean;
+    getIndex(productId: string): number;
     clear(): void;
 }

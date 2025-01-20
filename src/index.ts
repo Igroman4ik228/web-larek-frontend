@@ -13,7 +13,8 @@ import { PageView } from "./components/view/page";
 import { PaymentView } from "./components/view/payment";
 import { SuccessView } from "./components/view/success";
 import "./scss/styles.scss";
-import { BasketItemRemoveEvent, CardOrderEvent, CardSelectEvent, FormFieldChangeEvent, ModalStates, ModelStates, SuccessOpenEvent, UserDataForm, ValidateResult, ViewStates } from "./types";
+import { BasketProductAddEvent, BasketProductRemoveEvent, CardSelectEvent, FormFieldChangeEvent, ModalStates, ModelStates, SuccessOpenEvent, UserDataForm, ValidateResult, ViewStates } from "./types";
+import { IBasketProduct } from "./types/model/basket";
 import { IOrder, IProduct } from "./types/model/larekApi";
 import { CategoryColor } from "./types/view/cards/card";
 import { PaymentMethod } from "./types/view/payment";
@@ -35,7 +36,7 @@ events.onAll(({ eventName, data }) => {
  * Модели
  */
 const catalogModel = new CatalogModel(events);
-const basketModel = new BasketModel(events, catalogModel);
+const basketModel = new BasketModel(events);
 const userDataModel = new UserDataModel(events);
 
 /**
@@ -70,8 +71,10 @@ events.on(ModelStates.catalogChange, () => {
 
 // Изменилось состояние корзина
 events.on(ModelStates.basketChange, () => {
-    renderBasket(basketModel.productIds);
-    pageView.counter = basketModel.productIds.length;
+    basketView.items = basketModel.products.map(product => renderCardBasket(product));
+    basketView.totalPrice = basketModel.totalPrice;
+    basketView.valid = basketModel.isValid;
+    pageView.counter = basketModel.products.length;
 })
 
 // Изменилось состояние метода оплаты
@@ -116,7 +119,7 @@ events.on<SuccessOpenEvent>(ModelStates.successOpen, (event: SuccessOpenEvent) =
 
 
 // Удаление товара из корзины
-events.on<BasketItemRemoveEvent>(ViewStates.basketItemRemove, (event: BasketItemRemoveEvent) => {
+events.on<BasketProductRemoveEvent>(ViewStates.basketProductRemove, (event: BasketProductRemoveEvent) => {
     basketModel.remove(event.productId);
 })
 
@@ -129,14 +132,18 @@ events.on<CardSelectEvent>(ViewStates.cardSelect, (event: CardSelectEvent) => {
 })
 
 // Добавление товара в корзину
-events.on<CardOrderEvent>(ViewStates.cardOrder, (event: CardOrderEvent) => {
-    basketModel.add(event.productId);
+events.on<BasketProductAddEvent>(ViewStates.basketProductAdd, (event: BasketProductAddEvent) => {
+    basketModel.add({
+        id: event.product.id,
+        title: event.product.title,
+        price: event.product.price
+    });
 })
 
 // Открытие корзины
 events.on(ViewStates.basketOpen, () => {
     modalView.render({
-        content: renderBasket(basketModel.productIds)
+        content: basketView.render()
     })
 })
 
@@ -189,7 +196,7 @@ events.on(ViewStates.orderContactsSubmit, () => {
         email: userDataModel.userData.email,
         phone: userDataModel.userData.phone,
         total: basketModel.totalPrice,
-        items: basketModel.productIds
+        items: basketModel.products.map(product => product.id)
     }
 
     larekApi.createOrder(order)
@@ -242,6 +249,8 @@ function renderCard(item: IProduct): HTMLElement {
 }
 
 function renderCardPreview(item: IProduct): HTMLElement {
+    let isInBasket = basketModel.has(item.id)
+
     const cardPreviewView = new CardPreviewView(
         cloneTemplate(TEMPLATES.cardPreview),
         {
@@ -250,13 +259,14 @@ function renderCardPreview(item: IProduct): HTMLElement {
                 if (catalogModel.getProduct(item.id).price === null)
                     return;
 
-                if (basketModel.has(item.id))
-                    events.emit<BasketItemRemoveEvent>(ViewStates.basketItemRemove, { productId: item.id })
+                if (isInBasket)
+                    events.emit<BasketProductRemoveEvent>(ViewStates.basketProductRemove, { productId: item.id })
                 else
-                    events.emit<CardOrderEvent>(ViewStates.cardOrder, { productId: item.id })
+                    events.emit<BasketProductAddEvent>(ViewStates.basketProductAdd, { product: item })
 
                 // Обновление карточки после события
-                cardPreviewView.hasInBasket = basketModel.has(item.id)
+                isInBasket = basketModel.has(item.id)
+                cardPreviewView.hasInBasket = isInBasket;
             }
         }
     );
@@ -270,29 +280,20 @@ function renderCardPreview(item: IProduct): HTMLElement {
         image: item.image,
         price: item.price,
         description: item.description,
-        hasInBasket: basketModel.has(item.id)
+        hasInBasket: isInBasket
     })
 }
 
-function renderCardBasket(productId: string): HTMLElement {
+function renderCardBasket(product: IBasketProduct): HTMLElement {
     const cardBasketView = new CardBasketView(
         cloneTemplate(TEMPLATES.cardBasket),
         events
     );
 
-    const product = catalogModel.getProduct(productId);
     return cardBasketView.render({
-        index: basketModel.getIndex(productId),
+        index: basketModel.getIndex(product.id),
         id: product.id,
         title: product.title,
         price: product.price,
     });
-}
-
-function renderBasket(productIds: string[]): HTMLElement {
-    return basketView.render({
-        items: productIds.map(productId => renderCardBasket(productId)),
-        totalPrice: basketModel.totalPrice,
-        valid: basketModel.isValid
-    })
 }
