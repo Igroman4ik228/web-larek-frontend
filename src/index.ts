@@ -69,9 +69,6 @@ events.on(ModelStates.catalogChange, () => {
     pageView.catalog = catalogModel.products.map(renderCard);
 })
 
-// При инициализации приложения обновляем начальное состояние корзины
-updateBasketContent();
-
 // Изменилось состояние корзины (добавление/удаление товаров)
 events.on(ModelStates.basketChange, () => {
     updateBasketContent();
@@ -221,6 +218,8 @@ larekApi.getProductList()
     .then(products => catalogModel.products = products)
     .catch(err => console.error(err))
 
+// При инициализации приложения обновляем начальное состояние корзины
+updateBasketContent();
 
 function validateFields(fields: (keyof UserDataForm)[] = []): ValidateResult {
     const validationResults = fields.length === 0 ?
