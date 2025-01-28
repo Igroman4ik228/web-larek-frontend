@@ -1,5 +1,5 @@
-export type ApiPostMethods = "POST" | "PUT" | "DELETE";
+export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 
 export type ErrorState = {
-    error: string;
+	error: string;
 };

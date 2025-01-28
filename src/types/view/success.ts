@@ -1,3 +1,3 @@
 export interface ISuccessData {
-    totalPrice: number;
+	totalPrice: number;
 }

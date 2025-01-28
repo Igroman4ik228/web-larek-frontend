@@ -1,6 +1,6 @@
-import { IBaseCardData } from "./base";
+import { IBaseCardData } from './base';
 
 export interface ICardBasketData extends IBaseCardData {
-    index: number;
-    id: string;
+	index: number;
+	id: string;
 }

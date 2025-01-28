@@ -5,5 +5,5 @@ export type SelectorCollection<T> = string | NodeListOf<Element> | T[];
 export type ElementChild = HTMLElement | HTMLElement[];
 
 export type ElementProps<T extends HTMLElement> = Partial<
-    Record<keyof T, string | boolean | object>
+	Record<keyof T, string | boolean | object>
 >;

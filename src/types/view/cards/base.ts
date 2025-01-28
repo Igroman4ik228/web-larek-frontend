@@ -1,4 +1,4 @@
 export interface IBaseCardData {
-    title: string;
-    price: number | null;
+	title: string;
+	price: number | null;
 }

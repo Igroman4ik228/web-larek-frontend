@@ -1,5 +1,5 @@
 export interface IBasketData {
-    items: HTMLElement[];
-    totalPrice: number;
-    valid: boolean;
+	items: HTMLElement[];
+	totalPrice: number;
+	valid: boolean;
 }

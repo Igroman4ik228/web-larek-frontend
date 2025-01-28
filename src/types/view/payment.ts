@@ -1,6 +1,6 @@
-export type PaymentMethod = "online" | "cash";
+export type PaymentMethod = 'online' | 'cash';
 
 export interface IPaymentData {
-    payment: PaymentMethod;
-    address: string;
+	payment: PaymentMethod;
+	address: string;
 }
