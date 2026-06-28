@@ -1,3 +1,3 @@
 export interface IModalData {
-    content: HTMLElement | null;
+	content: HTMLElement | null;
 }
